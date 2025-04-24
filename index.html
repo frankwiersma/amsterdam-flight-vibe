@@ -1,0 +1,626 @@
+<!doctype html>
+<html>
+<head>
+    <!-- REMOVED Simple Analytics Script -->
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Embed NL Flag SVG as Favicon -->
+    <!-- Updated: URL-encoded SVG for better browser compatibility -->
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2790%27%3E%F0%9F%87%B3%F0%9F%87%B1%3C/text%3E%3C/svg%3E">
+    <title>lofi air traffic control 🇳🇱 amsterdam edition</title>
+    
+    <!-- Add Open Graph metadata -->
+    <meta property="og:title" content="Lo-fi Air Traffic Control 🇳🇱 Amsterdam Edition">
+    <meta property="og:description" content="Listen to live air traffic control radio from Amsterdam Schiphol Airport (AMS) mixed with Lo-fi Hip Hop beats."> 
+    <meta property="og:image" content="./lofiatcams-og-image.png"> <!-- TODO: Add actual OG image -->
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yourdomain.com/lofiatcams"> <!-- TODO: Change OG URL -->
+    
+    <!-- Twitter Card metadata -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Lo-fi Air Traffic Control 🇳🇱 Amsterdam Edition"> 
+    <meta name="twitter:description" content="Listen to live air traffic control radio from Amsterdam Schiphol Airport (AMS) mixed with Lo-fi Hip Hop beats."> 
+    <meta name="twitter:image" content="./lofiatcams-og-image.png"> <!-- TODO: Add actual Twitter image -->
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            /* background: #f5f5f5; Remove default background */
+        }
+
+        #background-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-size: cover;
+            background-position: center;
+            filter: blur(8px);
+            -webkit-filter: blur(8px);
+            transform: scale(1.1); /* Scale slightly to avoid blurred edges */
+            transition: background 1s ease-in-out;
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 2rem auto; /* Add margin back */
+            /* background-color: rgba(255, 255, 255, 0.1); Optional: Slight transparency */
+            /* backdrop-filter: blur(2px); Optional: slight blur on content background */
+            padding: 2rem;
+            border-radius: 10px;
+        }
+
+        .card {
+            background-color: rgba(245, 245, 245, 0.85); /* Semi-transparent white */
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            /* backdrop-filter: blur(5px); More pronounced blur effect on the card background */
+            /* -webkit-backdrop-filter: blur(5px); */
+            overflow: hidden; /* Contain children */
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #1a1a1a;
+            text-align: center; /* Center heading */
+        }
+
+        p {
+            font-size: 1.1rem; /* Slightly smaller */
+            margin-bottom: 1rem; /* Smaller margin */
+            color: #222; /* Darker text for readability on cards */
+        }
+
+        p.intro-text {
+             margin-bottom: 2rem; /* Restore larger margin for intro paragraphs */
+             font-size: 1.2rem; /* Restore intro font size */
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0; /* Collapse height for aspect ratio padding */
+            /* margin: 2rem 0; Remove margin as it's inside a card now */
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px; /* Slightly smaller radius */
+            /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); Remove shadow as card has one */
+            border: none;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #ccc; /* Lighter HR */
+            margin: 2rem 0;
+        }
+
+        footer {
+            font-size: 0.9rem;
+            color: #555; /* Slightly darker footer text */
+            text-align: center;
+            padding-top: 1rem;
+        }
+
+        footer span { /* Ensure spans within footer also inherit color */
+            color: inherit;
+        }
+
+        a {
+            color: #0056b3; /* Slightly darker blue */
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: #003d80;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+             .main-content {
+                 padding: 1rem;
+                 margin: 1rem auto;
+             }
+            h1 {
+                font-size: 2rem;
+            }
+            .card {
+                padding: 1rem;
+            }
+        }
+
+        .play-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            cursor: pointer;
+            display: flex; /* Use flexbox */
+            align-items: center; /* Center vertically */
+            justify-content: center; /* Center horizontally */
+        }
+        
+        .play-button {
+            /* position: absolute; Remove absolute positioning */
+            /* top: 50%; */
+            /* left: 50%; */
+            /* transform: translate(-50%, -50%); */
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .play-button .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .play-button .text {
+            font-size: 1.5rem;
+        }
+
+        .volume-control-card {
+             /* Specific styling for volume card if needed */
+             text-align: center; /* Center content */
+        }
+
+        .volume-control-card label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        #atc-volume {
+            width: 150px;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        #volume-value {
+            min-width: 40px;
+            display: inline-block;
+            color: #666;
+            vertical-align: middle;
+        }
+        
+        .radar-container-link {
+            display: block; /* Make link block level */
+            height: 150px; /* Give it some height */
+            background: linear-gradient(145deg, #1a1a1a 0%, #2a2a2a 47%, #1a1a1a 53%, #0a0a0a 100%); /* Original radar bg */
+            border-radius: 8px; /* Match other cards */
+            text-decoration: none;
+            color: #a0ffa0; /* Light green text */
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.2); /* Inner glow */
+            position: relative;
+            overflow: hidden;
+            display: flex; /* Center text */
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .radar-container-link:hover {
+            background: linear-gradient(145deg, #2a2a2a 0%, #3a3a3a 47%, #2a2a2a 53%, #1a1a1a 100%);
+            box-shadow: inset 0 0 30px rgba(0, 255, 0, 0.3), 0 0 10px rgba(0, 255, 0, 0.2); /* Brighter glow on hover */
+            color: #ffffff;
+        }
+
+        /* Scan line effect for radar link */
+        .radar-container-link::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(0, 255, 0, 0.5);
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+            animation: scan 4s linear infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(calc(150px + 40px)); } /* Height + padding */
+        }
+
+        /* Radar iframe container styles */
+        .radar-container {
+            position: relative; /* Needed for absolute positioning of iframe */
+            height: 400px; /* Define a height for the container */
+            overflow: hidden; /* Hide anything outside the container */
+            border-radius: 8px; /* Match card border radius */
+        }
+
+        .radar-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none; /* Remove default iframe border */
+        }
+
+        /* Arrivals board styles */
+        .arrivals-container {
+            margin-bottom: 2rem;
+        }
+
+        .arrivals-table-container {
+            overflow-x: auto;
+        }
+
+        .arrivals-board {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            font-family: 'Courier New', monospace;
+        }
+
+        .arrivals-board th,
+        .arrivals-board td {
+            padding: 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .arrivals-board th {
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: bold;
+        }
+
+        .arrivals-board tr:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .arrivals-board a {
+            color: #4CAF50;
+        }
+
+        #clock {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            font-family: 'Courier New', monospace;
+            color: #4CAF50;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="background-container"></div> 
+
+    <div id="playOverlay" class="play-overlay">
+        <div class="play-button">
+            <div class="icon">🇳🇱</div> 
+            <div class="text">Tap to start listening</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <h1>lofi air traffic control <img src="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%209%206%27%3E%3Crect%20width%3D%279%27%20height%3D%276%27%20fill%3D%27%2321468B%27/%3E%3Crect%20width%3D%279%27%20height%3D%274%27%20fill%3D%27%23FFFFFF%27/%3E%3Crect%20width%3D%279%27%20height%3D%272%27%20fill%3D%27%23AE1C28%27/%3E%3C/svg%3E" alt="NL Flag" style="height: 0.8em; vertical-align: middle; display: inline-block; margin-bottom: 0.1em;"> amsterdam edition</h1> 
+
+        <!-- Wrap intro text in a card -->
+        <div class="card">
+            <p class="intro-text">
+                Listen to live air traffic control radio from <a target="_blank" href="https://www.schiphol.nl/en/">Amsterdam Schiphol Airport</a> (AMS / EHAM) mixed with Lo-fi Hip Hop beats.
+            </p>
+            <p class="intro-text">
+                ATC audio courtesy of <a href="https://www.liveatc.net/search/?icao=EHAM" target="_blank">LiveATC.net</a>. Please note their <a href="https://www.liveatc.net/legal/" target="_blank">Terms of Use</a> regarding stream usage.
+            </p>
+        </div>
+
+        <audio style="display: none;" loop preload="auto" muted>
+            <source src="http://d.liveatc.net/eham_app_119055" type="audio/mpeg"> 
+        </audio>
+
+        <!-- Add the arrivals board here -->
+        <div class="card">
+            <div class="arrivals-container">
+                <div id="clock"></div>
+                <h2>ARRIVALS / AANKOMSTEN</h2>
+                <div class="arrivals-table-container">
+                    <table class="arrivals-board">
+                        <thead>
+                            <tr>
+                                <th>TIME</th>
+                                <th>FROM</th>
+                                <th>FLIGHT</th>
+                                <th>STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="arrivals-data">
+                            <!-- Data will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card for Radar View -->
+        <div class="card">
+            <h2>Live Radar</h2>
+            <div class="radar-container">
+                <iframe 
+                    src="https://www.flightradar24.com/simple?lat=52.31&lon=4.76&z=11"
+                    title="FlightRadar24 Amsterdam Schiphol Airport">
+                </iframe>
+            </div>
+        </div>
+
+        <!-- Card for YouTube video -->
+        <div class="card">
+            <h2>Lofi Beats</h2>
+             <div class="video-container">
+                <iframe 
+                    id="youtubeFrame"
+                    src="about:blank" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+
+        <!-- Card for Volume control -->
+        <div class="card volume-control-card">
+             <h2>ATC Volume</h2>
+            <div>
+                <input type="range" id="atc-volume" min="0" max="100" value="40">
+                <span id="volume-value">40%</span>
+            </div>
+        </div>
+
+        <hr>
+        <footer>
+            Made by Frank, inspired by Pieter. 
+            <br/>
+            Last updated: <!-- Date will be set by JS --> <span id="last-updated"></span>      
+            <br/>
+            This is a non-commercial project created for fun purposes only.
+            <!-- Removed fly.pieter.com link -->
+            <br/>
+             <span id="current-time-ams"></span> <!-- Placeholder for Amsterdam time -->
+        </footer>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script>
+        function getAmsterdamTime() {
+            const now = new Date();
+            // Use options for Amsterdam timezone and 24-hour format
+            const options = { timeZone: 'Europe/Amsterdam', hour12: false, hour: 'numeric', minute: 'numeric', second: 'numeric' };
+            const formatter = new Intl.DateTimeFormat([], options);
+            const parts = formatter.formatToParts(now);
+            const hour = parseInt(parts.find(part => part.type === 'hour').value);
+            const timeString = formatter.format(now);
+            return { hour: hour, timeString: timeString };
+        }
+
+        function updateBackgroundAndClock() {
+            const { hour, timeString } = getAmsterdamTime();
+            const backgroundDiv = document.getElementById('background-container');
+            let backgroundStyle = '';
+
+            // Define gradients based on hour (adjust hours as needed)
+            if (hour >= 6 && hour < 8) { // Sunrise
+                backgroundStyle = 'linear-gradient(to top, #ffecd2 0%, #fcb69f 100%)';
+            } else if (hour >= 8 && hour < 18) { // Daytime
+                backgroundStyle = 'linear-gradient(to top, #a1c4fd 0%, #c2e9fb 100%)';
+            } else if (hour >= 18 && hour < 21) { // Sunset
+                backgroundStyle = 'linear-gradient(to top, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%)';
+            } else { // Night (21:00 to 05:59)
+                 backgroundStyle = 'linear-gradient(to top, #09203f 0%, #537895 100%)';
+            }
+
+            if (backgroundDiv) {
+                 backgroundDiv.style.background = backgroundStyle;
+            }
+
+            // Update clock display in footer
+            const clockSpan = document.getElementById('current-time-ams');
+            if (clockSpan) {
+                 clockSpan.textContent = `Current time in Amsterdam: ${timeString}`;
+            }
+
+            // Update arrivals board clock
+            const clockDiv = document.getElementById('clock');
+            if (clockDiv) {
+                clockDiv.textContent = timeString;
+            }
+
+            // Update 'Last updated' date (simple example, only updates on load)
+            const lastUpdatedSpan = document.getElementById('last-updated');
+            if (lastUpdatedSpan && !lastUpdatedSpan.textContent) { // Only set once on load
+                 const today = new Date();
+                 const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
+                 lastUpdatedSpan.textContent = today.toLocaleDateString('en-CA', dateOptions); // YYYY-MM-DD format
+            }
+        }
+
+        // Function to update arrivals board
+        // IMPORTANT: This uses an unofficial FlightRadar24 data feed.
+        // It may break without notice and provides limited information (no reliable status or arrival times).
+        async function updateArrivalsBoard() {
+            // Define bounding box around Amsterdam area and specify EHAM airport
+            // const bounds = '52.60,52.00,4.00,5.50'; // North, South, West, East latitudes/longitudes
+            // const fr24ApiUrl = `https://data-live.flightradar24.com/zones/fcgi/feed.js?bounds=${bounds}&faa=1&mlat=1&flarm=1&adsb=1&gnd=0&air=1&vehicles=0&estimated=1&maxage=14400&gliders=0&stats=0&airport=EHAM`;
+            
+            // *** Use a relative path for a proxy endpoint you will create ***
+            const apiUrl = '/api/arrivals'; 
+
+            const arrivalsTableBody = document.getElementById('arrivals-data');
+            arrivalsTableBody.innerHTML = '<tr><td colspan="4">Loading arrivals data...</td></tr>'; // Show loading state
+
+            try {
+                // *** Fetch from your own proxy endpoint ***
+                const response = await fetch(apiUrl);
+                // Removed FlightRadar24 specific headers as the proxy should handle that if needed
+                // FlightRadar24 feed requires specific headers to mimic a browser request
+                // const response = await fetch(apiUrl, {
+                //     headers: {
+                //         'Accept': 'application/json', // Request JSON if possible (though feed.js might return JS)
+                //     }
+                //     // Note: No API key needed for this public (but unofficial) endpoint
+                // });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json(); // Expecting JSON structure
+
+                arrivalsTableBody.innerHTML = ''; // Clear loading state or previous data
+
+                let arrivalCount = 0;
+                const maxArrivalsToShow = 10; // Limit displayed arrivals
+
+                // The data object keys are flight IDs, values are arrays with flight details.
+                // Relevant indices (may change!):
+                // 11: Origin Airport ICAO
+                // 12: Destination Airport ICAO
+                // 13: Flight Number
+                // 17: Callsign (alternative identifier)
+                for (const flightId in data) {
+                    // Skip default keys like 'full_count', 'version', etc.
+                    if (flightId === 'full_count' || flightId === 'version' || typeof data[flightId] !== 'object' || !Array.isArray(data[flightId])) {
+                        continue;
+                    }
+
+                    const flightData = data[flightId];
+                    const destinationIcao = flightData[12];
+                    const flightNumber = flightData[13] || flightData[17] || 'N/A'; // Use Flight#, fallback to Callsign
+                    const originIcao = flightData[11] || 'N/A';
+
+                    // Filter for flights where destination is EHAM (Schiphol)
+                    if (destinationIcao === 'EHAM') {
+                        if (arrivalCount < maxArrivalsToShow) {
+                            const row = document.createElement('tr');
+
+                            // NOTE: Time is not available, Status is assumed 'EN ROUTE'
+                            row.innerHTML = `
+                                <td>--:--</td> <!-- Time not available -->
+                                <td>${originIcao.toUpperCase()}</td>
+                                <td><a href="https://www.flightradar24.com/data/flights/${flightNumber.toLowerCase()}" target="_blank">${flightNumber}</a></td>
+                                <td>EN ROUTE</td> <!-- Status not reliably available -->
+                            `;
+                            arrivalsTableBody.appendChild(row);
+                            arrivalCount++;
+                        } else {
+                            break; // Stop processing once we have enough arrivals
+                        }
+                    }
+                }
+
+                if (arrivalCount === 0) {
+                    arrivalsTableBody.innerHTML = '<tr><td colspan="4">No current arrival data found for EHAM in this feed.</td></tr>';
+                }
+
+            } catch (error) {
+                console.error('Error fetching or processing FlightRadar24 data:', error);
+                // Display a more user-friendly error but keep details in console
+                 let errorMessage = `Could not load arrivals data.`;
+                 if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+                     errorMessage += ' Network error or CORS issue likely. Check browser console.';
+                 } else if (error instanceof SyntaxError) {
+                     errorMessage += ' Invalid data format received from source.';
+                 } else {
+                     errorMessage += ` Error: ${error.message}`;
+                 }
+                arrivalsTableBody.innerHTML = `<tr><td colspan="4">${errorMessage} See console for details.</td></tr>`;
+            }
+        }
+
+        $(document).ready(function() {
+            var audio = $('audio')[0];
+            var overlay = $('#playOverlay');
+            var youtubeFrame = $('#youtubeFrame');
+            // Updated YouTube Video ID
+            var youtubeVideoId = "CLeZyIID9Bo";
+            // REMOVE static URL definition - will be built dynamically on click
+            // var youtubeUrl = `https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&loop=1&playlist=${youtubeVideoId}`;
+            
+            // Initial setup for background and clock
+            updateBackgroundAndClock();
+            // Update background and clock every 5 minutes (300000 ms)
+            setInterval(updateBackgroundAndClock, 300000); 
+
+            // Initial setup for arrivals board
+            updateArrivalsBoard();
+            // Update arrivals board every minute
+            setInterval(updateArrivalsBoard, 60000);
+
+            // Start muted
+            audio.muted = true;
+            // Initial volume based on slider
+            const initialVolume = $('#atc-volume').val() / 100;
+            audio.volume = initialVolume;
+
+            overlay.on('click', function() {
+                overlay.fadeOut();
+                // Start audio
+                audio.play()
+                    .then(function() {
+                        audio.muted = false;
+                        
+                        // Calculate random start time (e.g., within the first 3600 seconds / 1 hour)
+                        const randomStartSeconds = Math.floor(Math.random() * 3600);
+                        // Construct the dynamic URL with the random start time
+                        const youtubeUrl = `https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&loop=1&playlist=${youtubeVideoId}&start=${randomStartSeconds}`;
+                        
+                        // Load YouTube video after click with random start
+                        youtubeFrame.attr('src', youtubeUrl);
+                    })
+                    .catch(function(error) {
+                        console.error("Audio playback failed:", error);
+                        // Still try to load YouTube video even if audio fails
+                        // Calculate random start time here as well
+                        const randomStartSeconds = Math.floor(Math.random() * 3600);
+                        const youtubeUrl = `https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&loop=1&playlist=${youtubeVideoId}&start=${randomStartSeconds}`;
+                        youtubeFrame.attr('src', youtubeUrl);
+                        alert("ATC Audio playback failed. This might be due to browser restrictions, an issue with the LiveATC stream, or network problems. YouTube video will still load.");
+                    });
+            });
+
+            const volumeSlider = $('#atc-volume');
+            const volumeValue = $('#volume-value');
+
+            volumeSlider.on('input', function() {
+                const volume = $(this).val() / 100;
+                audio.volume = volume;
+                volumeValue.text($(this).val() + '%');
+            });
+
+        });
+    </script>
+</body>
+</html> 
