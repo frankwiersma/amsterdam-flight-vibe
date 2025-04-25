@@ -467,71 +467,66 @@
             }
         }
 
-        // Function to update arrivals board
-        // IMPORTANT: This uses an unofficial FlightRadar24 data feed.
-        // It may break without notice and provides limited information (no reliable status or arrival times).
+        // IMPORTANT: This function now assumes the /api/arrivals endpoint (server-side)
+        // calls the Schiphol Flight API (v4) with appropriate headers (app_id, app_key, ResourceVersion)
+        // and parameters (flightDirection=A, sort=+scheduleTime), and returns its JSON response.
         async function updateArrivalsBoard() {
-            // Define bounding box around Amsterdam area and specify EHAM airport
-            // const bounds = '52.60,52.00,4.00,5.50'; // North, South, West, East latitudes/longitudes
-            // const fr24ApiUrl = `https://data-live.flightradar24.com/zones/fcgi/feed.js?bounds=${bounds}&faa=1&mlat=1&flarm=1&adsb=1&gnd=0&air=1&vehicles=0&estimated=1&maxage=14400&gliders=0&stats=0&airport=EHAM`;
-            
-            // *** Use a relative path for a proxy endpoint you will create ***
-            const apiUrl = '/api/arrivals'; 
+            const apiUrl = '/api/arrivals'; // Keep using the proxy endpoint
 
             const arrivalsTableBody = document.getElementById('arrivals-data');
+            if (!arrivalsTableBody) {
+                console.error("Arrivals table body not found.");
+                return;
+            }
             arrivalsTableBody.innerHTML = '<tr><td colspan="4">Loading arrivals data...</td></tr>'; // Show loading state
 
             try {
-                // *** Fetch from your own proxy endpoint ***
-                const response = await fetch(apiUrl);
-                // Removed FlightRadar24 specific headers as the proxy should handle that if needed
-                // FlightRadar24 feed requires specific headers to mimic a browser request
-                // const response = await fetch(apiUrl, {
-                //     headers: {
-                //         'Accept': 'application/json', // Request JSON if possible (though feed.js might return JS)
-                //     }
-                //     // Note: No API key needed for this public (but unofficial) endpoint
-                // });
+                const response = await fetch(apiUrl); // Fetch from the proxy
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    // Provide more specific feedback based on status
+                    let errorMsg = `HTTP error! Status: ${response.status}`;
+                    if (response.status === 401 || response.status === 403) {
+                        errorMsg += ' - Check API keys/permissions on the server proxy.';
+                    } else if (response.status === 404) {
+                        errorMsg += ' - API endpoint not found on the server proxy.';
+                    } else if (response.status >= 500) {
+                         errorMsg += ' - Server-side error at the proxy.';
+                    }
+                    throw new Error(errorMsg);
                 }
 
-                const data = await response.json(); // Expecting JSON structure
+                // Expecting JSON structure directly from Schiphol API via proxy
+                const data = await response.json(); 
+
+                if (!data || !Array.isArray(data.flights)) {
+                     throw new Error("Invalid data structure received. Expected { flights: [...] }.");
+                }
 
                 arrivalsTableBody.innerHTML = ''; // Clear loading state or previous data
 
                 let arrivalCount = 0;
-                const maxArrivalsToShow = 10; // Limit displayed arrivals
+                const maxArrivalsToShow = 15; // Limit displayed arrivals
 
-                // The data object keys are flight IDs, values are arrays with flight details.
-                // Relevant indices (may change!):
-                // 11: Origin Airport ICAO
-                // 12: Destination Airport ICAO
-                // 13: Flight Number
-                // 17: Callsign (alternative identifier)
-                for (const flightId in data) {
-                    // Skip default keys like 'full_count', 'version', etc.
-                    if (flightId === 'full_count' || flightId === 'version' || typeof data[flightId] !== 'object' || !Array.isArray(data[flightId])) {
-                        continue;
-                    }
-
-                    const flightData = data[flightId];
-                    const destinationIcao = flightData[12];
-                    const flightNumber = flightData[13] || flightData[17] || 'N/A'; // Use Flight#, fallback to Callsign
-                    const originIcao = flightData[11] || 'N/A';
-
-                    // Filter for flights where destination is EHAM (Schiphol)
-                    if (destinationIcao === 'EHAM') {
+                // Process flights according to Schiphol API v4 structure
+                for (const flight of data.flights) {
+                    // Filter for arrivals (although proxy should already do this)
+                    if (flight.flightDirection === 'A') {
                         if (arrivalCount < maxArrivalsToShow) {
-                            const row = document.createElement('tr');
+                            const scheduleTime = flight.scheduleTime ? flight.scheduleTime.substring(0, 5) : '--:--'; // Extract HH:mm
+                            // Assuming the first destination in the route array is the origin for arrivals
+                            const originIata = flight.route?.destinations?.[0] || 'N/A'; 
+                            const flightName = flight.flightName || 'N/A';
+                             // Join flight states array into a string, default to 'SCHEDULED' if empty/missing
+                            const status = flight.publicFlightState?.flightStates?.join(', ') || 'SCHEDULED'; 
 
-                            // NOTE: Time is not available, Status is assumed 'EN ROUTE'
+                            const row = document.createElement('tr');
                             row.innerHTML = `
-                                <td>--:--</td> <!-- Time not available -->
-                                <td>${originIcao.toUpperCase()}</td>
-                                <td><a href="https://www.flightradar24.com/data/flights/${flightNumber.toLowerCase()}" target="_blank">${flightNumber}</a></td>
-                                <td>EN ROUTE</td> <!-- Status not reliably available -->
+                                <td>${scheduleTime}</td>
+                                <td>${originIata.toUpperCase()}</td>
+                                <!-- Using flightName for the link text and potentially the URL -->
+                                <td><a href="https://www.flightradar24.com/data/flights/${flightName.toLowerCase()}" target="_blank">${flightName}</a></td>
+                                <td>${status}</td> 
                             `;
                             arrivalsTableBody.appendChild(row);
                             arrivalCount++;
@@ -542,21 +537,24 @@
                 }
 
                 if (arrivalCount === 0) {
-                    arrivalsTableBody.innerHTML = '<tr><td colspan="4">No current arrival data found for EHAM in this feed.</td></tr>';
+                    // Check if the original response actually had flights but none were arrivals
+                    if (data.flights.length > 0) {
+                         arrivalsTableBody.innerHTML = '<tr><td colspan="4">No arrival flights found in the data. Check proxy filters.</td></tr>';
+                    } else {
+                         arrivalsTableBody.innerHTML = '<tr><td colspan="4">No flight data available from the source.</td></tr>';
+                    }
                 }
 
             } catch (error) {
-                console.error('Error fetching or processing FlightRadar24 data:', error);
-                // Display a more user-friendly error but keep details in console
-                 let errorMessage = `Could not load arrivals data.`;
-                 if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-                     errorMessage += ' Network error or CORS issue likely. Check browser console.';
-                 } else if (error instanceof SyntaxError) {
-                     errorMessage += ' Invalid data format received from source.';
-                 } else {
-                     errorMessage += ` Error: ${error.message}`;
-                 }
-                arrivalsTableBody.innerHTML = `<tr><td colspan="4">${errorMessage} See console for details.</td></tr>`;
+                console.error('Error fetching or processing arrivals data via proxy:', error);
+                // Display a more user-friendly error
+                let errorMessage = `Could not load arrivals data.`;
+                if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+                    errorMessage += ' Network error connecting to the proxy endpoint (/api/arrivals). Is the server running?';
+                } else {
+                    errorMessage += ` Error: ${error.message}`;
+                }
+                arrivalsTableBody.innerHTML = `<tr><td colspan="4">${errorMessage} Check console and ensure the server-side proxy is working correctly.</td></tr>`;
             }
         }
 
