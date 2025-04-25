@@ -1,32 +1,57 @@
-# Lo-fi Air Traffic Control - Amsterdam Edition 🇳🇱
+# Amsterdam Flight Vibe
 
-Listen to live air traffic control radio 📻 from Amsterdam Schiphol Airport (AMS / EHAM) mixed with Lo-fi Hip Hop beats 🎶.
+A relaxing web experience combining live air traffic control audio from Amsterdam Schiphol Airport (AMS) with lo-fi hip hop beats.
 
-This project provides a relaxing ambient experience 🧘 combining real-time ATC chatter from Schiphol with a calming lofi soundtrack.
+Visit the live site: [http://lofi-atc-ams.osint.app.com/](http://lofi-atc-ams.osint.app.com/)
 
-## Features ✨
+## Features
 
-*   **Live ATC Audio:** 🎧 Streams audio from LiveATC.net (EHAM Approach feed).
-*   **Lofi Beats:** 🎵 Embeds a YouTube lofi hip hop radio stream.
-*   **Dynamic Background:** 🌇 Background gradient changes based on the time of day in Amsterdam.
-*   **Live Arrivals Board:** ✈️ Displays upcoming arrivals at Schiphol using data proxied from FlightRadar24 (unofficial feed, may be unstable).
-*   **Live Radar View:** 📡 Embeds a FlightRadar24 view centered on Schiphol.
-*   **Volume Control:** 🔊 Adjust the volume of the ATC audio stream independently.
-*   **Simple Interface:**🖱️ Click anywhere on the initial overlay to start the audio and video streams.
+- Live ATC audio stream from Schiphol Airport
+- Lo-fi beats from YouTube
+- Real-time flight arrivals data from Schiphol API
+- Responsive design with time-of-day theming
+- Live radar view via ADS-B Exchange
 
-## Data Sources 📊
+## Project Structure
 
-*   **ATC Audio:** [LiveATC.net](https://www.liveatc.net/search/?icao=EHAM) (Please respect their [Terms of Use](https://www.liveatc.net/legal/))
-*   **Arrivals Data:** Unofficial FlightRadar24 feed (proxied via `/api/arrivals`).
-*   **Radar View:** [FlightRadar24](https://www.flightradar24.com/)
-*   **Lofi Music:** YouTube
+```
+amsterdam-flight-vibe/
+├── .netlify/             # Netlify deployment configuration
+├── netlify/
+│   └── functions/        # Serverless functions for API endpoints
+│       └── arrivals.js   # Flight arrivals data handler
+├── public/               # Static assets (main website)
+│   ├── _redirects        # Netlify redirects configuration
+│   └── index.html        # Main application HTML
+└── package.json          # Project dependencies
+```
 
-## Usage 🚀
+## Technology Stack
 
-1.  Open `index.html` in your web browser 🌐.
-2.  Click anywhere on the screen to start the ATC audio and the lofi music stream ▶️.
-3.  Adjust the ATC volume using the slider 🎚️.
+- Pure HTML/CSS/JavaScript frontend
+- Netlify serverless functions for backend API
+- Schiphol Airport API for flight data
+- LiveATC.net for air traffic control audio
 
-## Disclaimer ⚠️
+## Deployment
 
-This is a non-commercial project created for fun and educational purposes only. The accuracy and availability of the ATC audio and flight data depend on external sources (LiveATC.net, FlightRadar24) and are not guaranteed. 
+This project is deployed on Netlify. To deploy:
+
+```bash
+# Install dependencies
+npm install
+
+# Deploy to Netlify
+netlify deploy --prod
+```
+
+## Environment Variables
+
+The following environment variables need to be set in Netlify:
+
+- `SCHIPHOL_APP_ID`: API ID for Schiphol Airport API
+- `SCHIPHOL_APP_KEY`: API Key for Schiphol Airport API
+
+## License
+
+ISC 

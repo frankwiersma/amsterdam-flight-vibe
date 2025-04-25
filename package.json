@@ -1,5 +1,16 @@
 {
+  "name": "amsterdam-flight-vibe",
+  "version": "1.0.0",
+  "description": "Live air traffic control with lo-fi beats for Amsterdam Schiphol",
+  "main": "index.js",
+  "scripts": {
+    "dev": "netlify dev",
+    "deploy": "netlify deploy --prod"
+  },
   "dependencies": {
-    "date-fns": "^4.1.0"
-  }
+    "axios": "^1.6.8",
+    "date-fns": "^3.6.0"
+  },
+  "author": "",
+  "license": "ISC"
 }
