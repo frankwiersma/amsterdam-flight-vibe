@@ -2,7 +2,7 @@
 
 A relaxing web experience combining live air traffic control audio from Amsterdam Schiphol Airport (AMS) with lo-fi hip hop beats.
 
-Visit the live site: [http://lofi-atc-ams.osint.app.com/](http://lofi-atc-ams.osint.app.com/)
+Visit the live site: [https://lofi-atc-ams.osint-app.com//](https://lofi-atc-ams.osint-app.com/)
 
 ## Features
 
