@@ -400,8 +400,11 @@ exports.handler = async function(event, context) {
 
     // Get current time in Netherlands timezone
     const now = new Date();
-    const nlOffset = now.getTimezoneOffset();
-    const nlTime = new Date(now.getTime() - (nlOffset * 60 * 1000));
+    // Convert current time to Amsterdam timezone. Using toLocaleString keeps
+    // compatibility without additional dependencies.
+    const nlTime = new Date(
+        now.toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' })
+    );
     
     // Get today's date in YYYY-MM-DD format
     const todayDate = format(nlTime, 'yyyy-MM-dd');
