@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2790%27%3E%F0%9F%87%B3%F0%9F%87%B1%3C/text%3E%3C/svg%3E">
-    <title>lofi ATC · Amsterdam Schiphol</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2790%27%3E%F0%9F%87%AB%F0%9F%87%B7%3C/text%3E%3C/svg%3E">
+    <title>lofi ATC · Paris Charles de Gaulle</title>
 
-    <meta property="og:title" content="Lo-fi Air Traffic Control · Amsterdam Schiphol">
-    <meta property="og:description" content="Live ATC radio from Schiphol mixed with lofi beats. Real-time arrivals. Chill vibes.">
+    <meta property="og:title" content="Lo-fi Air Traffic Control · Paris CDG">
+    <meta property="og:description" content="Live ATC radio from Paris CDG mixed with lofi beats. Real-time arrivals. Chill vibes.">
     <meta property="og:url" content="https://lofi-atc-ams.co-evolve.nl">
     <meta name="twitter:card" content="summary_large_image">
 
@@ -417,7 +417,7 @@
 <div class="app">
     <!-- Top Bar -->
     <header class="topbar">
-        <div class="topbar-brand">lofi ATC · <span>schiphol</span></div>
+        <div class="topbar-brand">lofi ATC · <span>paris cdg</span></div>
         <div class="topbar-clock" id="clock"></div>
         <div class="topbar-audio">
             <button class="atc-btn" id="atcBtn">
@@ -437,7 +437,7 @@
         <!-- Flights -->
         <section class="fids">
             <div class="fids-bar">
-                <span class="fids-title">✈ Arrivals · Amsterdam Schiphol</span>
+                <span class="fids-title">✈ Arrivals · Paris CDG</span>
                 <span class="fids-meta">
                     <span class="spinner" id="spin"></span>
                     <span id="metaText">loading</span>
@@ -457,7 +457,7 @@
 
         <!-- Radar -->
         <section class="radar">
-            <span class="radar-label">Live Radar · AMS</span>
+            <span class="radar-label">Live Radar · CDG</span>
             <iframe id="radarFrame" src="" loading="lazy"></iframe>
         </section>
     </div>
@@ -593,17 +593,20 @@
     // ── Clock ──
     function updateClock() {
         const now = new Date();
-        const ams = now.toLocaleTimeString('nl-NL', { timeZone:'Europe/Amsterdam', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        const paris = now.toLocaleTimeString('fr-FR', { timeZone:'Europe/Paris', hour:'2-digit', minute:'2-digit', second:'2-digit' });
         const utc = now.toUTCString().slice(17, 25);
-        document.getElementById('clock').textContent = ams + ' AMS · ' + utc + ' UTC';
+        document.getElementById('clock').textContent = paris + ' CDG · ' + utc + ' UTC';
     }
     updateClock();
     setInterval(updateClock, 1000);
 
     // ── ATC Audio ──
     const ATC_URLS = [
-        'https://d.liveatc.net/eham_app_119055',
-        'https://d.liveatc.net/eham_app',
+        'https://d.liveatc.net/lfpg3_dep',
+        'https://d.liveatc.net/lfpg3_app',
+        'https://d.liveatc.net/lfpg3_twr',
+        'https://s2-fmt2.liveatc.net/lfpg3_dep',
+        'https://s2-fmt2.liveatc.net/lfpg3_app',
     ];
     const audio = document.getElementById('atcAudio');
     const atcBtn = document.getElementById('atcBtn');
@@ -630,7 +633,7 @@
         audio.play().then(() => {
             playing = true;
             dot.className = 'status-dot connected';
-            atcLabel.textContent = '⏸ LIVE · EHAM APP';
+            atcLabel.textContent = '⏸ LIVE · LFPG';
             atcBtn.classList.add('playing');
             if (!lofiOn) { startLofi(); lofiOn = true; }
         }).catch(() => tryATC(idx + 1));
@@ -663,12 +666,13 @@
     }
 
     // ── Radar ──
+    // CDG coordinates: 49.0097, 2.5479
     document.getElementById('radarFrame').src =
-        'https://globe.adsbexchange.com/?lat=52.309&lon=4.764&zoom=10.5&hideButtons&hideSidebar';
+        'https://globe.adsbexchange.com/?lat=49.010&lon=2.548&zoom=10.5&hideButtons&hideSidebar';
 
     // ── Helpers ──
-    function getNowAms() {
-        return new Date(new Date().toLocaleString('en-US', { timeZone:'Europe/Amsterdam' }));
+    function getNowParis() {
+        return new Date(new Date().toLocaleString('en-US', { timeZone:'Europe/Paris' }));
     }
 
     function getAirlineName(icao, flightName) {
@@ -700,7 +704,8 @@
         const s = raw.toUpperCase();
         if (s==='ARR'||s==='LND'||s==='LANDED') return 'b-landed';
         if (s==='DEL'||s==='DELAYED') return 'b-delayed';
-        if (s==='CNX'||s==='CANCELLED') return 'b-cancelled';
+        if (s==='CNX'||s==='CANCELLED'||s==='DIVERTED') return 'b-cancelled';
+        if (s==='ACTIVE'||s==='EN-ROUTE'||s==='EN_ROUTE') return 'b-expected';
         return 'b-expected';
     }
 
@@ -710,7 +715,9 @@
         if (s==='ARR'||s==='LND'||s==='LANDED') return 'landed';
         if (s==='DEL'||s==='DELAYED') return 'delayed';
         if (s==='CNX'||s==='CANCELLED') return 'cancelled';
-        if (s==='EXP'||s==='EXPECTED'||s==='FIR'||s==='SCH') return 'expected';
+        if (s==='DIVERTED') return 'diverted';
+        if (s==='ACTIVE'||s==='EN-ROUTE'||s==='EN_ROUTE') return 'en route';
+        if (s==='EXP'||s==='EXPECTED'||s==='FIR'||s==='SCH'||s==='SCHEDULED') return 'expected';
         return raw.toLowerCase();
     }
 
@@ -720,7 +727,7 @@
     function render(flights) {
         const board = document.getElementById('board');
         const footer = document.getElementById('footer');
-        const now = getNowAms();
+        const now = getNowParis();
         const nowMins = now.getHours() * 60 + now.getMinutes();
 
         // Filter: -5 min → +30 min
@@ -745,7 +752,7 @@
                 ? `<img class="flag" src="https://flagcdn.com/w40/${cc}.png" alt="${cc}" onerror="this.style.display='none'">`
                 : '';
             const iataTag = f.iata ? `<span style="color:var(--text-dim);font-size:0.65rem"> (${f.iata})</span>` : '';
-            const csText = f.codeshares && f.codeshares.length ? `<span style="color:var(--text-dim);font-size:0.6rem;font-family:var(--font-body);font-weight:400"> +${f.codeshares.length}</span>` : '';
+            const csText = '';
             return `<div class="fids-row" style="animation-delay:${i*0.03}s">
                 <span class="time">${f.time}</span>
                 <span class="flight">${f.flight}${csText}</span>
@@ -759,12 +766,12 @@
         const to = new Date(now.getTime() + 30*60000);
         const hTo = String(to.getHours()).padStart(2,'0');
         const mTo = String(to.getMinutes()).padStart(2,'0');
-        footer.textContent = `${filtered.length} flights · now – ${hTo}:${mTo} AMS`;
+        footer.textContent = `${filtered.length} flights · now – ${hTo}:${mTo} CDG`;
     }
 
     // ── Mock data ──
     function mockFlights() {
-        const now = getNowAms();
+        const now = getNowParis();
         const base = now.getHours()*60 + now.getMinutes();
         const list = [];
         const samples = [
@@ -809,35 +816,30 @@
         spin.classList.add('on');
         meta.textContent = 'updating…';
 
-        fetch('/.netlify/functions/arrivals')
+        fetch('/.netlify/functions/arrivals-cdg')
             .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
             .then(data => {
                 const raw = data.flights || [];
-                cached = raw.filter(f => {
-                    // Keep only main/operating flights (filter codeshares)
-                    return !f.mainFlight || f.flightName === f.mainFlight;
-                }).map(f => {
+                cached = raw.map(f => {
                     let time = f.scheduleTime?.slice(0,5) || '';
                     if (f.scheduleDateTime) {
                         const d = new Date(f.scheduleDateTime);
-                        const a = new Date(d.toLocaleString('en-US',{timeZone:'Europe/Amsterdam'}));
+                        const a = new Date(d.toLocaleString('en-US',{timeZone:'Europe/Paris'}));
                         time = String(a.getHours()).padStart(2,'0') + ':' + String(a.getMinutes()).padStart(2,'0');
                     }
 
-                    const rawIata = (f.route?.destinations||[])[0] || '';
+                    // Support both Schiphol and AviationStack formats
+                    const rawIata = f.departure?.iata || (f.route?.destinations||[])[0] || '';
                     const ap = getAirportInfo(rawIata);
-                    const cc = f.cityInfo?.country?.toLowerCase() || ap.cc;
-                    const city = f.cityInfo?.city || ap.city;
+                    const cc = ap.cc;
+                    const city = ap.city || f.departure?.airport || rawIata;
                     const iataCode = ap.iata || rawIata;
-                    const carrier = getAirlineName(f.prefixICAO, f.flightName);
-                    const acCode = f.aircraftType?.iataSub || f.aircraftType?.iataMain || '';
+                    const carrier = f.airline?.name || getAirlineName(f.airline?.icao || f.prefixICAO, f.flightName);
+                    const acCode = f.aircraft?.iata || f.aircraftType?.iataSub || f.aircraftType?.iataMain || '';
                     const aircraft = getAircraftName(acCode);
-                    const status = (f.publicFlightState?.flightStates||[])[0] || 'expected';
+                    const rawStatus = f.status || (f.publicFlightState?.flightStates||[])[0] || 'expected';
 
-                    const isMainFlight = !f.mainFlight || f.flightName === f.mainFlight;
-                    const codeshares = (f.codeshares?.codeshares || []).filter(c => c !== f.flightName);
-
-                    return { time, flight: f.flightName||'', carrier, city, iata: iataCode, countryCode: cc, aircraft, status, isMainFlight, codeshares, mainFlight: f.mainFlight };
+                    return { time, flight: f.flightName||'', carrier, city, iata: iataCode, countryCode: cc, aircraft, status: rawStatus };
                 });
 
                 render(cached.length ? cached : mockFlights());
