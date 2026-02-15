@@ -163,10 +163,18 @@
             align-items: center;
             gap: 0.75rem;
             width: 100%;
-            max-width: 250px;
+            max-width: 280px;
         }
 
-        .volume-icon { font-size: 1rem; color: var(--text-dim); }
+        .volume-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            min-width: 28px;
+            text-align: right;
+        }
+
+        .volume-icon { font-size: 1rem; color: var(--text-dim); cursor: pointer; }
 
         .volume-slider {
             -webkit-appearance: none;
@@ -196,8 +204,23 @@
             cursor: pointer;
         }
 
+        .lofi-section {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .lofi-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
         .lofi-embed {
-            margin-top: 1rem;
             border-radius: 12px;
             overflow: hidden;
             opacity: 0.85;
@@ -222,7 +245,7 @@
 
         /* ── Content ── */
         .content {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 2rem 1.5rem 4rem;
             display: grid;
@@ -231,7 +254,10 @@
         }
 
         @media (min-width: 1024px) {
-            .content { grid-template-columns: 2fr 1fr; }
+            .content {
+                grid-template-columns: 1fr 1fr;
+                align-items: start;
+            }
         }
 
         /* ── FIDS Flight Board ── */
@@ -363,6 +389,15 @@
             font-size: 0.85rem;
         }
 
+        .fids-time-window {
+            padding: 0.5rem 1.25rem;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            border-top: 1px solid rgba(255,255,255,0.04);
+            text-align: center;
+        }
+
         /* ── Radar ── */
         .radar-panel {
             background: var(--bg-card);
@@ -385,7 +420,17 @@
         .radar-iframe-wrap {
             position: relative;
             width: 100%;
-            padding-bottom: 100%;
+            padding-bottom: 80%;
+        }
+
+        @media (min-width: 1024px) {
+            .radar-iframe-wrap {
+                padding-bottom: 100%;
+            }
+            .radar-panel {
+                position: sticky;
+                top: 2rem;
+            }
         }
 
         .radar-iframe-wrap iframe {
@@ -424,23 +469,21 @@
         <p class="hero-sub">live air traffic control × lofi beats × amsterdam</p>
 
         <div class="audio-panel">
-            <button class="play-btn" id="playBtn" title="Start ATC audio">▶</button>
+            <button class="play-btn" id="playBtn" title="Start listening — ATC + lofi beats">▶</button>
             <div class="atc-status">
                 <span class="status-dot" id="statusDot"></span>
-                <span id="statusText">ATC offline</span>
+                <span id="statusText">tap to start listening</span>
             </div>
             <div class="volume-control">
-                <span class="volume-icon">🔊</span>
-                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70">
+                <span class="volume-icon" id="volumeIcon">🔊</span>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="25">
+                <span class="volume-label" id="volumeLabel">25%</span>
             </div>
-            <div class="lofi-embed">
-                <iframe width="300" height="60"
-                    src="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=0&loop=1"
-                    title="lofi hip hop radio"
-                    allow="autoplay; encrypted-media"
-                    allowfullscreen
-                    style="border:none; border-radius:8px;">
-                </iframe>
+            <div class="lofi-section">
+                <span class="lofi-label">lofi beats</span>
+                <div class="lofi-embed" id="lofiEmbed">
+                    <!-- YouTube iframe injected on play -->
+                </div>
             </div>
         </div>
 
@@ -467,11 +510,12 @@
             <div id="flightBoard">
                 <div class="fids-empty">Loading arrivals...</div>
             </div>
+            <div class="fids-time-window" id="timeWindow"></div>
         </section>
 
         <!-- Radar -->
         <section class="radar-panel">
-            <div class="radar-header">Live Radar</div>
+            <div class="radar-header">Live Radar · Schiphol</div>
             <div class="radar-iframe-wrap">
                 <iframe id="radarFrame"
                     src=""
@@ -481,14 +525,18 @@
         </section>
     </main>
 
-    <audio id="atcAudio" crossorigin="anonymous" preload="none">
-        <source src="https://s1-bos.liveatc.net/eham_app?nocache=" type="audio/mpeg">
-        <source src="https://s1-fmt2.liveatc.net/eham_app?nocache=" type="audio/mpeg">
-    </audio>
+    <audio id="atcAudio" preload="none"></audio>
 
     <script>
     (function() {
         'use strict';
+
+        // ── ATC stream URLs (original working URLs) ──
+        const ATC_STREAMS = [
+            'https://d.liveatc.net/eham_app_119055',
+            'https://d.liveatc.net/eham_app',
+            'https://d.liveatc.net/eham_twr',
+        ];
 
         // ── Clock ──
         function updateClock() {
@@ -506,9 +554,60 @@
         const statusDot = document.getElementById('statusDot');
         const statusText = document.getElementById('statusText');
         const volumeSlider = document.getElementById('volumeSlider');
+        const volumeLabel = document.getElementById('volumeLabel');
+        const volumeIcon = document.getElementById('volumeIcon');
+        const lofiEmbed = document.getElementById('lofiEmbed');
         let isPlaying = false;
+        let currentStreamIndex = 0;
+        let lofiStarted = false;
 
-        audio.volume = 0.7;
+        audio.volume = 0.25;
+
+        function tryStream(index) {
+            if (index >= ATC_STREAMS.length) {
+                statusDot.className = 'status-dot error';
+                statusText.textContent = 'all ATC streams unavailable';
+                playBtn.textContent = '▶';
+                playBtn.classList.remove('playing');
+                isPlaying = false;
+                return;
+            }
+
+            currentStreamIndex = index;
+            const url = ATC_STREAMS[index] + '?nocache=' + Date.now();
+            statusText.textContent = 'connecting...';
+
+            audio.src = url;
+            audio.load();
+            audio.play().then(() => {
+                playBtn.textContent = '⏸';
+                playBtn.classList.add('playing');
+                statusDot.className = 'status-dot connected';
+                const streamName = ATC_STREAMS[index].split('/').pop().split('?')[0].toUpperCase().replace(/_/g, ' ');
+                statusText.textContent = 'live · ' + streamName;
+                isPlaying = true;
+
+                // Start YouTube lofi on first play (user gesture context)
+                if (!lofiStarted) {
+                    startLofi();
+                    lofiStarted = true;
+                }
+            }).catch(() => {
+                // Try next stream
+                tryStream(index + 1);
+            });
+        }
+
+        function startLofi() {
+            const randomStart = Math.floor(Math.random() * 7200);
+            lofiEmbed.innerHTML = `<iframe width="300" height="60"
+                src="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&loop=1&start=${randomStart}"
+                title="lofi hip hop radio"
+                allow="autoplay; encrypted-media"
+                allowfullscreen
+                style="border:none; border-radius:8px;">
+            </iframe>`;
+        }
 
         playBtn.addEventListener('click', () => {
             if (isPlaying) {
@@ -516,82 +615,158 @@
                 playBtn.textContent = '▶';
                 playBtn.classList.remove('playing');
                 statusDot.className = 'status-dot';
-                statusText.textContent = 'ATC paused';
+                statusText.textContent = 'paused';
                 isPlaying = false;
             } else {
-                // Add cache-buster
-                const ts = Date.now();
-                audio.querySelector('source:first-child').src = 'https://s1-bos.liveatc.net/eham_app?nocache=' + ts;
-                audio.querySelector('source:last-child').src = 'https://s1-fmt2.liveatc.net/eham_app?nocache=' + ts;
-                audio.load();
-                audio.play().then(() => {
-                    playBtn.textContent = '⏸';
-                    playBtn.classList.add('playing');
-                    statusDot.className = 'status-dot connected';
-                    statusText.textContent = 'ATC live · EHAM APP';
-                    isPlaying = true;
-                }).catch(() => {
-                    statusDot.className = 'status-dot error';
-                    statusText.textContent = 'ATC unavailable';
-                });
+                tryStream(0);
             }
         });
 
         audio.addEventListener('error', () => {
-            statusDot.className = 'status-dot error';
-            statusText.textContent = 'ATC connection lost';
-            playBtn.textContent = '▶';
-            playBtn.classList.remove('playing');
-            isPlaying = false;
+            // Try next stream on error
+            if (isPlaying) {
+                tryStream(currentStreamIndex + 1);
+            }
+        });
+
+        // Reconnect if stream ends
+        audio.addEventListener('ended', () => {
+            if (isPlaying) {
+                setTimeout(() => tryStream(0), 2000);
+            }
         });
 
         volumeSlider.addEventListener('input', (e) => {
-            audio.volume = e.target.value / 100;
+            const vol = e.target.value / 100;
+            audio.volume = vol;
+            volumeLabel.textContent = e.target.value + '%';
+            volumeIcon.textContent = vol === 0 ? '🔇' : vol < 0.4 ? '🔉' : '🔊';
         });
 
-        // ── Radar iframe with current date ──
+        // ── Radar iframe with live view (no showTrace for live) ──
         function setRadarUrl() {
-            const now = new Date();
-            const y = now.getFullYear(), m = now.getMonth() + 1, d = now.getDate();
-            const dateStr = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             document.getElementById('radarFrame').src =
-                `https://globe.adsbexchange.com/?icao=&lat=52.309&lon=4.764&zoom=10.0&showTrace=${dateStr}`;
+                'https://globe.adsbexchange.com/?icao=&lat=52.309&lon=4.764&zoom=10.5&hideButtons';
         }
         setRadarUrl();
 
-        // ── Mock flights fallback ──
-        const mockFlights = [
-            { time: '14:25', flight: 'KL1009', origin: 'London Heathrow', status: 'landed' },
-            { time: '14:40', flight: 'TK1953', origin: 'Istanbul', status: 'expected' },
-            { time: '14:55', flight: 'DL47',   origin: 'New York JFK', status: 'expected' },
-            { time: '15:10', flight: 'KL861',  origin: 'Tokyo Narita', status: 'delayed' },
-            { time: '15:20', flight: 'AF1640', origin: 'Paris CDG', status: 'expected' },
-            { time: '15:35', flight: 'BA438',  origin: 'London City', status: 'landed' },
-            { time: '15:50', flight: 'LH4680', origin: 'Frankfurt', status: 'expected' },
-            { time: '16:05', flight: 'EY76',   origin: 'Abu Dhabi', status: 'expected' },
-            { time: '16:15', flight: 'KL641',  origin: 'New York JFK', status: 'delayed' },
-            { time: '16:30', flight: 'UA990',  origin: 'Chicago', status: 'expected' },
-        ];
+        // ── Time helpers ──
+        function getNowAms() {
+            // Get current time in Amsterdam timezone
+            const str = new Date().toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' });
+            return new Date(str);
+        }
+
+        function timeToMinutes(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            return h * 60 + m;
+        }
 
         // ── Render flights ──
         function renderFlights(flights) {
             const board = document.getElementById('flightBoard');
+            const timeWindowEl = document.getElementById('timeWindow');
             if (!flights || flights.length === 0) {
-                board.innerHTML = '<div class="fids-empty">No arrivals found</div>';
+                board.innerHTML = '<div class="fids-empty">No arrivals in this time window</div>';
+                timeWindowEl.textContent = '';
                 return;
             }
-            board.innerHTML = flights.map((f, i) => `
-                <div class="fids-row" style="animation-delay: ${i * 0.05}s">
-                    <span class="time">${f.time || '—'}</span>
-                    <span class="flight-num">${f.flight || f.flightName || '—'}</span>
-                    <span class="origin">${f.origin || f.route?.destinations?.[0] || '—'}</span>
-                    <span class="status-badge status-${(f.status || 'expected').toLowerCase().replace(/\s+/g,'-')}">${f.status || '—'}</span>
-                </div>
-            `).join('');
+
+            const now = getNowAms();
+            const nowMins = now.getHours() * 60 + now.getMinutes();
+
+            // Filter: no more than 5 min in the past, max 30 min in the future
+            const filtered = flights.filter(f => {
+                if (!f.time || f.time === '—') return false;
+                const flightMins = timeToMinutes(f.time);
+                const diff = flightMins - nowMins;
+                // Handle midnight crossing
+                const adjustedDiff = diff < -720 ? diff + 1440 : diff > 720 ? diff - 1440 : diff;
+                return adjustedDiff >= -5 && adjustedDiff <= 30;
+            });
+
+            if (filtered.length === 0) {
+                board.innerHTML = '<div class="fids-empty">No arrivals in the next 30 minutes</div>';
+                const fromTime = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+                const toDate = new Date(now.getTime() + 30 * 60000);
+                const toTime = String(toDate.getHours()).padStart(2,'0') + ':' + String(toDate.getMinutes()).padStart(2,'0');
+                timeWindowEl.textContent = `showing ${fromTime} – ${toTime} AMS`;
+                return;
+            }
+
+            board.innerHTML = filtered.map((f, i) => {
+                const statusClass = mapStatus(f.status);
+                const statusLabel = mapStatusLabel(f.status);
+                return `
+                <div class="fids-row" style="animation-delay: ${i * 0.04}s">
+                    <span class="time">${f.time}</span>
+                    <span class="flight-num">${f.flight}</span>
+                    <span class="origin">${f.origin}</span>
+                    <span class="status-badge ${statusClass}">${statusLabel}</span>
+                </div>`;
+            }).join('');
+
+            const fromTime = String(Math.max(0, now.getHours() * 60 + now.getMinutes() - 5)).toString();
+            const hFrom = String(now.getHours()).padStart(2,'0');
+            const mFrom = String(Math.max(0, now.getMinutes() - 5)).padStart(2,'0');
+            const toDate = new Date(now.getTime() + 30 * 60000);
+            const hTo = String(toDate.getHours()).padStart(2,'0');
+            const mTo = String(toDate.getMinutes()).padStart(2,'0');
+            timeWindowEl.textContent = `showing arrivals · now – ${hTo}:${mTo} AMS · ${filtered.length} flights`;
+        }
+
+        function mapStatus(raw) {
+            if (!raw) return 'status-expected';
+            const s = raw.toUpperCase();
+            if (s === 'ARR' || s === 'LND' || s === 'LANDED') return 'status-landed';
+            if (s === 'DEL' || s === 'DELAYED') return 'status-delayed';
+            if (s === 'CNX' || s === 'CANCELLED') return 'status-cancelled';
+            return 'status-expected';
+        }
+
+        function mapStatusLabel(raw) {
+            if (!raw) return 'expected';
+            const s = raw.toUpperCase();
+            if (s === 'ARR' || s === 'LND' || s === 'LANDED') return 'landed';
+            if (s === 'DEL' || s === 'DELAYED') return 'delayed';
+            if (s === 'CNX' || s === 'CANCELLED') return 'cancelled';
+            if (s === 'EXP' || s === 'EXPECTED') return 'expected';
+            return raw.toLowerCase();
+        }
+
+        // ── Mock flights fallback ──
+        function generateMockFlights() {
+            const now = getNowAms();
+            const base = now.getHours() * 60 + now.getMinutes();
+            const airlines = [
+                { code: 'KL', origins: ['London Heathrow', 'Paris CDG', 'Frankfurt', 'Copenhagen', 'Oslo'] },
+                { code: 'TK', origins: ['Istanbul'] },
+                { code: 'DL', origins: ['New York JFK', 'Atlanta'] },
+                { code: 'BA', origins: ['London City', 'London Gatwick'] },
+                { code: 'AF', origins: ['Paris CDG', 'Nice'] },
+                { code: 'LH', origins: ['Frankfurt', 'Munich'] },
+                { code: 'EY', origins: ['Abu Dhabi'] },
+                { code: 'UA', origins: ['Chicago', 'Washington'] },
+            ];
+            const flights = [];
+            for (let i = -3; i < 35; i += 3) {
+                const mins = base + i;
+                const h = String(Math.floor(((mins % 1440) + 1440) % 1440 / 60)).padStart(2,'0');
+                const m = String(((mins % 60) + 60) % 60).padStart(2,'0');
+                const al = airlines[Math.floor(Math.random() * airlines.length)];
+                flights.push({
+                    time: `${h}:${m}`,
+                    flight: `${al.code}${Math.floor(Math.random() * 9000) + 1000}`,
+                    origin: al.origins[Math.floor(Math.random() * al.origins.length)],
+                    status: i < 0 ? 'landed' : (Math.random() > 0.85 ? 'delayed' : 'expected'),
+                });
+            }
+            return flights;
         }
 
         // ── Fetch flights ──
         let lastRefresh = Date.now();
+        let cachedFlights = null;
 
         function fetchFlights() {
             const spinner = document.getElementById('refreshSpinner');
@@ -600,32 +775,45 @@
             refreshText.textContent = 'updating...';
 
             fetch('/.netlify/functions/arrivals')
-                .then(r => r.json())
+                .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
                 .then(data => {
-                    const flights = (data.flights || data || []).map(f => ({
-                        time: f.scheduleTime?.slice(0, 5) || f.time || '',
-                        flight: f.flightName || f.flight || '',
-                        origin: (f.route?.destinations || [])[0] || f.origin || '',
-                        status: f.publicFlightState?.flightStates?.[0] || f.status || 'expected',
-                    }));
-                    if (flights.length > 0) {
-                        renderFlights(flights);
-                    } else {
-                        renderFlights(mockFlights);
-                    }
+                    const raw = data.flights || data || [];
+                    const flights = raw.map(f => {
+                        // Get time in AMS timezone from scheduleDateTime
+                        let time = f.scheduleTime?.slice(0, 5) || '';
+                        if (f.scheduleDateTime) {
+                            const d = new Date(f.scheduleDateTime);
+                            const ams = new Date(d.toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' }));
+                            time = String(ams.getHours()).padStart(2,'0') + ':' + String(ams.getMinutes()).padStart(2,'0');
+                        }
+                        return {
+                            time,
+                            flight: f.flightName || '',
+                            origin: f.cityInfo?.city || (f.route?.destinations || [])[0] || '',
+                            status: (f.publicFlightState?.flightStates || [])[0] || 'expected',
+                        };
+                    });
+
+                    cachedFlights = flights.length > 0 ? flights : null;
+                    renderFlights(cachedFlights || generateMockFlights());
                     lastRefresh = Date.now();
                     spinner.classList.remove('active');
                     refreshText.textContent = 'updated just now';
                 })
                 .catch(() => {
-                    renderFlights(mockFlights);
+                    renderFlights(cachedFlights || generateMockFlights());
                     spinner.classList.remove('active');
-                    refreshText.textContent = 'using cached data';
+                    refreshText.textContent = cachedFlights ? 'using cached data' : 'demo data';
                 });
         }
 
         fetchFlights();
         setInterval(fetchFlights, 5 * 60 * 1000);
+
+        // Re-render every 60s to keep the time window sliding
+        setInterval(() => {
+            renderFlights(cachedFlights || generateMockFlights());
+        }, 60000);
 
         // Update "updated X min ago" text
         setInterval(() => {
