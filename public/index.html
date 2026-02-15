@@ -699,88 +699,7 @@
         EZE:['Buenos Aires','ar'],DSS:['Dakar','sn'],
     };
 
-    // ── Clock ──
-    function updateClock() {
-        const now = new Date();
-        const local = now.toLocaleTimeString('en-GB', { timeZone: cfg.tz, hour:'2-digit', minute:'2-digit', second:'2-digit' });
-        const utc = now.toUTCString().slice(17, 25);
-        document.getElementById('clock').textContent = local + ' ' + cfg.tzLabel + ' · ' + utc + ' UTC';
-    }
-    updateClock();
-    setInterval(updateClock, 1000);
-
-    // ── Airport selector ──
-    const aptBtn = document.getElementById('aptBtn');
-    const aptDropdown = document.getElementById('aptDropdown');
-
-    function buildDropdown() {
-        let html = '';
-        for (const [region, codes] of Object.entries(REGIONS)) {
-            html += `<div class="apt-region">${region}</div>`;
-            for (const code of codes) {
-                const a = AIRPORTS_CONFIG[code];
-                const active = code === currentAirport ? ' active' : '';
-                html += `<div class="apt-option${active}" data-code="${code}">
-                    <span class="apt-code">${code}</span>
-                    <span>${a.flag} ${a.name}</span>
-                </div>`;
-            }
-        }
-        aptDropdown.innerHTML = html;
-    }
-    buildDropdown();
-
-    function updateBrand() {
-        document.getElementById('brandAirport').textContent = cfg.brand;
-        aptBtn.textContent = '✈ ' + currentAirport + ' ▾';
-        document.getElementById('fidsTitle').textContent = '✈ Arrivals · ' + cfg.name;
-        document.getElementById('radarLabel').textContent = 'Live Radar · ' + currentAirport;
-        document.title = 'lofi ATC · ' + cfg.name;
-    }
-    updateBrand();
-
-    aptBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        aptDropdown.classList.toggle('open');
-    });
-
-    document.addEventListener('click', () => aptDropdown.classList.remove('open'));
-
-    aptDropdown.addEventListener('click', (e) => {
-        const opt = e.target.closest('.apt-option');
-        if (!opt) return;
-        const code = opt.dataset.code;
-        if (code === currentAirport) { aptDropdown.classList.remove('open'); return; }
-
-        currentAirport = code;
-        cfg = AIRPORTS_CONFIG[code];
-        ATC_URLS = getAtcUrls();
-        localStorage.setItem('lofi-atc-airport', code);
-
-        // Stop current ATC
-        if (playing) {
-            audio.pause(); audio.src = '';
-            playing = false;
-            dot.className = 'status-dot';
-            atcLabel.textContent = '▶ ATC';
-            atcBtn.classList.remove('playing');
-        }
-
-        updateBrand();
-        buildDropdown();
-        aptDropdown.classList.remove('open');
-
-        // Update radar
-        document.getElementById('radarFrame').src =
-            'https://globe.adsbexchange.com/?lat=' + cfg.lat + '&lon=' + cfg.lon + '&zoom=10.5&hideButtons&hideSidebar';
-
-        // Fetch new flights
-        cached = null;
-        fetchFlights();
-    });
-
-    // ── ATC Audio ──
-    // ── Airport configs ──
+    // ── Airport configs (must be first!) ──
     const AIRPORTS_CONFIG = {
         AMS: { name:'Amsterdam Schiphol', brand:'amsterdam', tz:'Europe/Amsterdam', tzLabel:'AMS',
             lat:52.309, lon:4.764, api:'arrivals',
@@ -866,7 +785,7 @@
         audio.play().then(() => {
             playing = true;
             dot.className = 'status-dot connected';
-            atcLabel.textContent = '⏸ LIVE · LFPG';
+            atcLabel.textContent = '⏸ LIVE · ' + cfg.icao;
             atcBtn.classList.add('playing');
             if (!lofiOn) { startLofi(); lofiOn = true; }
         }).catch(() => tryATC(idx + 1));
@@ -897,6 +816,83 @@
         document.getElementById('lofiWrap').innerHTML =
             '<iframe width="200" height="38" src="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1&loop=1&start=' + start + '" title="lofi" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
     }
+
+    // ── Clock ──
+    function updateClock() {
+        const now = new Date();
+        const local = now.toLocaleTimeString('en-GB', { timeZone: cfg.tz, hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        const utc = now.toUTCString().slice(17, 25);
+        document.getElementById('clock').textContent = local + ' ' + cfg.tzLabel + ' · ' + utc + ' UTC';
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ── Airport selector ──
+    const aptBtn = document.getElementById('aptBtn');
+    const aptDropdown = document.getElementById('aptDropdown');
+
+    function buildDropdown() {
+        let html = '';
+        for (const [region, codes] of Object.entries(REGIONS)) {
+            html += `<div class="apt-region">${region}</div>`;
+            for (const code of codes) {
+                const a = AIRPORTS_CONFIG[code];
+                const active = code === currentAirport ? ' active' : '';
+                html += `<div class="apt-option${active}" data-code="${code}">
+                    <span class="apt-code">${code}</span>
+                    <span>${a.flag} ${a.name}</span>
+                </div>`;
+            }
+        }
+        aptDropdown.innerHTML = html;
+    }
+    buildDropdown();
+
+    function updateBrand() {
+        document.getElementById('brandAirport').textContent = cfg.brand;
+        aptBtn.textContent = '✈ ' + currentAirport + ' ▾';
+        document.getElementById('fidsTitle').textContent = '✈ Arrivals · ' + cfg.name;
+        document.getElementById('radarLabel').textContent = 'Live Radar · ' + currentAirport;
+        document.title = 'lofi ATC · ' + cfg.name;
+    }
+    updateBrand();
+
+    aptBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        aptDropdown.classList.toggle('open');
+    });
+    document.addEventListener('click', () => aptDropdown.classList.remove('open'));
+
+    aptDropdown.addEventListener('click', (e) => {
+        const opt = e.target.closest('.apt-option');
+        if (!opt) return;
+        const code = opt.dataset.code;
+        if (code === currentAirport) { aptDropdown.classList.remove('open'); return; }
+
+        currentAirport = code;
+        cfg = AIRPORTS_CONFIG[code];
+        ATC_URLS = getAtcUrls();
+        localStorage.setItem('lofi-atc-airport', code);
+
+        if (playing) {
+            audio.pause(); audio.src = '';
+            playing = false;
+            dot.className = 'status-dot';
+            atcLabel.textContent = '▶ ATC';
+            atcBtn.classList.remove('playing');
+        }
+
+        updateBrand();
+        updateClock();
+        buildDropdown();
+        aptDropdown.classList.remove('open');
+
+        document.getElementById('radarFrame').src =
+            'https://globe.adsbexchange.com/?lat=' + cfg.lat + '&lon=' + cfg.lon + '&zoom=10.5&hideButtons&hideSidebar';
+
+        cached = null;
+        fetchFlights();
+    });
 
     // ── Radar ──
     document.getElementById('radarFrame').src =
