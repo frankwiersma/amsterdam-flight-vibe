@@ -490,7 +490,7 @@
 
     // ── Aircraft type map (IATA code → readable) ──
     const AIRCRAFT = {
-        '73H':'Boeing 737-800','738':'Boeing 737-800','73J':'Boeing 737-900','739':'Boeing 737-900',
+        '737':'Boeing 737','73H':'Boeing 737-800','738':'Boeing 737-800','73W':'Boeing 737-700','73G':'Boeing 737-700','73J':'Boeing 737-900','739':'Boeing 737-900',
         '7M8':'Boeing 737 MAX 8','7M9':'Boeing 737 MAX 9',
         '772':'Boeing 777-200','77W':'Boeing 777-300ER','773':'Boeing 777-300',
         '788':'Boeing 787-8','789':'Boeing 787-9','78X':'Boeing 787-10',
@@ -504,36 +504,69 @@
         'CR9':'Bombardier CRJ-900','DH4':'Dash 8-Q400','AT7':'ATR 72',
     };
 
-    // ── Airport → country code (for flags) ──
-    const AIRPORT_COUNTRY = {
-        LHR:'gb',LGW:'gb',STN:'gb',LTN:'gb',MAN:'gb',EDI:'gb',BHX:'gb',BRS:'gb',LCY:'gb',
-        CDG:'fr',ORY:'fr',NCE:'fr',LYS:'fr',MRS:'fr',TLS:'fr',BOD:'fr',
-        FRA:'de',MUC:'de',BER:'de',HAM:'de',DUS:'de',STR:'de',CGN:'de',HAJ:'de',
-        MAD:'es',BCN:'es',AGP:'es',ALC:'es',PMI:'es',TFS:'es',ACE:'es',LPA:'es',IBZ:'es',SVQ:'es',VLC:'es',BIO:'es',
-        FCO:'it',MXP:'it',VCE:'it',NAP:'it',BLQ:'it',PSA:'it',CTA:'it',PMO:'it',FLR:'it',BGY:'it',BRI:'it',LIN:'it',
-        VIE:'at',ZRH:'ch',GVA:'ch',BSL:'ch',
-        BRU:'be',LUX:'lu',
-        LIS:'pt',OPO:'pt',FAO:'pt',FNC:'pt',
-        ATH:'gr',SKG:'gr',HER:'gr',RHO:'gr',CFU:'gr',JMK:'gr',JTR:'gr',
-        IST:'tr',SAW:'tr',AYT:'tr',ADB:'tr',DLM:'tr',ESB:'tr',
-        OSL:'no',BGO:'no',TRD:'no',SVG:'no',
-        CPH:'dk',ARN:'se',GOT:'se',HEL:'fi',
-        WAW:'pl',KRK:'pl',WRO:'pl',GDN:'pl',
-        BUD:'hu',PRG:'cz',OTP:'ro',CLJ:'ro',SOF:'bg',
-        DUB:'ie',SNN:'ie',KEF:'is',RKV:'is',
-        TLL:'ee',RIX:'lv',VNO:'lt',
-        ZAG:'hr',SPU:'hr',DBV:'hr',BEG:'rs',LJU:'si',TIA:'al',SKP:'mk',SJJ:'ba',
-        DXB:'ae',AUH:'ae',DOH:'qa',BAH:'bh',KWI:'kw',MCT:'om',RUH:'sa',JED:'sa',
-        TLV:'il',AMM:'jo',BEY:'lb',CAI:'eg',CMN:'ma',RAK:'ma',TUN:'tn',ALG:'dz',
-        JFK:'us',EWR:'us',LAX:'us',ORD:'us',ATL:'us',MIA:'us',SFO:'us',IAD:'us',BOS:'us',DFW:'us',
-        YYZ:'ca',YVR:'ca',YUL:'ca',
-        MEX:'mx',GRU:'br',EZE:'ar',BOG:'co',SCL:'cl',LIM:'pe',
-        NRT:'jp',HND:'jp',KIX:'jp',PEK:'cn',PVG:'cn',CAN:'cn',HKG:'hk',
-        SIN:'sg',BKK:'th',KUL:'my',CGK:'id',MNL:'ph',
-        ICN:'kr',TPE:'tw',
-        DEL:'in',BOM:'in',BLR:'in',MAA:'in',
-        SYD:'au',MEL:'au',AKL:'nz',
-        JNB:'za',CPT:'za',NBO:'ke',ADD:'et',LOS:'ng',ACC:'gh',DSS:'sn',
+    // ── Airport database: IATA → {city, country code} ──
+    const AIRPORTS = {
+        AAL:['Aalborg','dk'],ABZ:['Aberdeen','gb'],ACE:['Lanzarote','es'],AES:['Ålesund','no'],
+        AGP:['Málaga','es'],ALC:['Alicante','es'],ARN:['Stockholm','se'],ATH:['Athens','gr'],
+        ATL:['Atlanta','us'],AUA:['Aruba','aw'],AUH:['Abu Dhabi','ae'],AYT:['Antalya','tr'],
+        BCN:['Barcelona','es'],BEG:['Belgrade','rs'],BER:['Berlin','de'],BEY:['Beirut','lb'],
+        BFS:['Belfast','gb'],BGO:['Bergen','no'],BHD:['Belfast City','gb'],BHX:['Birmingham','gb'],
+        BIO:['Bilbao','es'],BKK:['Bangkok','th'],BLL:['Billund','dk'],BLQ:['Bologna','it'],
+        BOD:['Bordeaux','fr'],BOG:['Bogotá','co'],BOM:['Mumbai','in'],BOS:['Boston','us'],
+        BRE:['Bremen','de'],BRS:['Bristol','gb'],BRU:['Brussels','be'],BSL:['Basel','ch'],
+        BUD:['Budapest','hu'],BVC:['Boa Vista','cv'],CAI:['Cairo','eg'],CAN:['Guangzhou','cn'],
+        CDG:['Paris CDG','fr'],CGK:['Jakarta','id'],CGO:['Zhengzhou','cn'],CMN:['Casablanca','ma'],
+        CPH:['Copenhagen','dk'],CPT:['Cape Town','za'],CTA:['Catania','it'],CTU:['Chengdu','cn'],
+        CUR:['Curaçao','cw'],CWL:['Cardiff','gb'],DEL:['Delhi','in'],DOH:['Doha','qa'],
+        DTW:['Detroit','us'],DUB:['Dublin','ie'],DUS:['Düsseldorf','de'],DXB:['Dubai','ae'],
+        EDI:['Edinburgh','gb'],EXT:['Exeter','gb'],FAO:['Faro','pt'],FCO:['Rome','it'],
+        FLR:['Florence','it'],FNC:['Funchal','pt'],FRA:['Frankfurt','de'],FUE:['Fuerteventura','es'],
+        GDN:['Gdańsk','pl'],GIG:['Rio de Janeiro','br'],GLA:['Glasgow','gb'],GOA:['Genoa','it'],
+        GOT:['Gothenburg','se'],GRU:['São Paulo','br'],GVA:['Geneva','ch'],GYD:['Baku','az'],
+        HAJ:['Hanover','de'],HAM:['Hamburg','de'],HEL:['Helsinki','fi'],HRG:['Hurghada','eg'],
+        HUY:['Humberside','gb'],HYD:['Hyderabad','in'],IBZ:['Ibiza','es'],ICN:['Seoul','kr'],
+        INN:['Innsbruck','at'],INV:['Inverness','gb'],IST:['Istanbul','tr'],JED:['Jeddah','sa'],
+        JFK:['New York JFK','us'],JNB:['Johannesburg','za'],KEF:['Reykjavik','is'],KIX:['Osaka','jp'],
+        KRK:['Kraków','pl'],KRS:['Kristiansand','no'],KTT:['Kittilä','fi'],KUL:['Kuala Lumpur','my'],
+        LAX:['Los Angeles','us'],LBA:['Leeds','gb'],LCA:['Larnaca','cy'],LCY:['London City','gb'],
+        LEJ:['Leipzig','de'],LGW:['London Gatwick','gb'],LHR:['London Heathrow','gb'],
+        LIM:['Lima','pe'],LIN:['Milan Linate','it'],LIS:['Lisbon','pt'],LJU:['Ljubljana','si'],
+        LPA:['Gran Canaria','es'],LPI:['Linköping','se'],LPL:['Liverpool','gb'],LTN:['London Luton','gb'],
+        LUX:['Luxembourg','lu'],LYS:['Lyon','fr'],MAD:['Madrid','es'],MAN:['Manchester','gb'],
+        MCO:['Orlando','us'],MCT:['Muscat','om'],MEX:['Mexico City','mx'],MLA:['Malta','mt'],
+        MME:['Durham','gb'],MRS:['Marseille','fr'],MSP:['Minneapolis','us'],MUC:['Munich','de'],
+        MXP:['Milan Malpensa','it'],NAP:['Naples','it'],NBO:['Nairobi','ke'],NCE:['Nice','fr'],
+        NCL:['Newcastle','gb'],NDR:['Nador','ma'],NRT:['Tokyo Narita','jp'],NTE:['Nantes','fr'],
+        NUE:['Nuremberg','de'],NWI:['Norwich','gb'],OLB:['Olbia','it'],OPO:['Porto','pt'],
+        ORD:['Chicago','us'],ORK:['Cork','ie'],ORY:['Paris Orly','fr'],OSL:['Oslo','no'],
+        OTP:['Bucharest','ro'],OUD:['Oujda','ma'],PBM:['Paramaribo','sr'],PEK:['Beijing','cn'],
+        PHL:['Philadelphia','us'],PKX:['Beijing Daxing','cn'],PMO:['Palermo','it'],POZ:['Poznań','pl'],
+        PRG:['Prague','cz'],PTY:['Panama City','pa'],PUJ:['Punta Cana','do'],PVG:['Shanghai','cn'],
+        RAK:['Marrakech','ma'],RIX:['Riga','lv'],RTM:['Rotterdam','nl'],RVN:['Rovaniemi','fi'],
+        SAW:['Istanbul Sabiha','tr'],SCL:['Santiago','cl'],SEA:['Seattle','us'],SEN:['Southend','gb'],
+        SFO:['San Francisco','us'],SIN:['Singapore','sg'],SJO:['San José','cr'],SKG:['Thessaloniki','gr'],
+        SLC:['Salt Lake City','us'],SOF:['Sofia','bg'],SOU:['Southampton','gb'],STN:['London Stansted','gb'],
+        STR:['Stuttgart','de'],SVG:['Stavanger','no'],SVQ:['Seville','es'],SXM:['St. Maarten','sx'],
+        TBS:['Tbilisi','ge'],TFS:['Tenerife South','es'],TLL:['Tallinn','ee'],TLS:['Toulouse','fr'],
+        TLV:['Tel Aviv','il'],TNG:['Tangier','ma'],TPA:['Tampa','us'],TRD:['Trondheim','no'],
+        TRN:['Turin','it'],UIO:['Quito','ec'],VCE:['Venice','it'],VIE:['Vienna','at'],
+        VLC:['Valencia','es'],VNO:['Vilnius','lt'],WAW:['Warsaw','pl'],WOE:['Woensdrecht','nl'],
+        XFW:['Hamburg Finkenwerder','de'],XMN:['Xiamen','cn'],YYZ:['Toronto','ca'],ZAG:['Zagreb','hr'],
+        ZRH:['Zurich','ch'],
+        // Extras not in current data but common at AMS
+        AMS:['Amsterdam','nl'],EWR:['Newark','us'],IAD:['Washington','us'],DFW:['Dallas','us'],
+        MIA:['Miami','us'],YVR:['Vancouver','ca'],YUL:['Montreal','ca'],HND:['Tokyo Haneda','jp'],
+        HKG:['Hong Kong','hk'],TPE:['Taipei','tw'],BLR:['Bangalore','in'],MAA:['Chennai','in'],
+        SYD:['Sydney','au'],MEL:['Melbourne','au'],AKL:['Auckland','nz'],ADD:['Addis Ababa','et'],
+        LOS:['Lagos','ng'],ACC:['Accra','gh'],RUH:['Riyadh','sa'],KWI:['Kuwait City','kw'],
+        BAH:['Bahrain','bh'],AMM:['Amman','jo'],TUN:['Tunis','tn'],ALG:['Algiers','dz'],
+        PMI:['Palma de Mallorca','es'],HER:['Heraklion','gr'],RHO:['Rhodes','gr'],
+        CFU:['Corfu','gr'],JMK:['Mykonos','gr'],JTR:['Santorini','gr'],DLM:['Dalaman','tr'],
+        ADB:['Izmir','tr'],ESB:['Ankara','tr'],WRO:['Wrocław','pl'],SPU:['Split','hr'],
+        DBV:['Dubrovnik','hr'],TIA:['Tirana','al'],SKP:['Skopje','mk'],SJJ:['Sarajevo','ba'],
+        SNN:['Shannon','ie'],RKV:['Reykjavik','is'],CLJ:['Cluj','ro'],BGY:['Bergamo','it'],
+        BRI:['Bari','it'],PSA:['Pisa','it'],CGN:['Cologne','de'],MNL:['Manila','ph'],
+        EZE:['Buenos Aires','ar'],DSS:['Dakar','sn'],
     };
 
     // ── Clock ──
@@ -633,10 +666,12 @@
         return code;
     }
 
-    function getCountryCode(iata) {
-        if (!iata) return null;
-        const clean = iata.replace(/[^A-Z]/g, '').slice(0, 3);
-        return AIRPORT_COUNTRY[clean] || null;
+    function getAirportInfo(iata) {
+        if (!iata) return { city: iata || '', cc: null };
+        const clean = iata.replace(/[^A-Z]/gi, '').slice(0, 3).toUpperCase();
+        const info = AIRPORTS[clean];
+        if (info) return { city: info[0], cc: info[1], iata: clean };
+        return { city: clean, cc: null, iata: clean };
     }
 
     function statusClass(raw) {
@@ -688,11 +723,12 @@
             const flagHtml = cc
                 ? `<img class="flag" src="https://flagcdn.com/w40/${cc}.png" alt="${cc}" onerror="this.style.display='none'">`
                 : '';
+            const iataTag = f.iata ? ` <span style="color:var(--text-dim);font-size:0.65rem">(${f.iata})</span>` : '';
             return `<div class="fids-row" style="animation-delay:${i*0.03}s">
                 <span class="time">${f.time}</span>
                 <span class="flight">${f.flight}</span>
                 <span class="carrier">${f.carrier}</span>
-                <span class="origin">${flagHtml}${f.city}</span>
+                <span class="origin">${flagHtml}${f.city}${iataTag}</span>
                 <span class="aircraft">${f.aircraft}</span>
                 <span><span class="badge ${statusClass(f.status)}">${statusLabel(f.status)}</span></span>
             </div>`;
@@ -710,18 +746,18 @@
         const base = now.getHours()*60 + now.getMinutes();
         const list = [];
         const samples = [
-            {al:'KLM',city:'London Heathrow',cc:'gb',ac:'Boeing 787-9'},
-            {al:'Turkish Airlines',city:'Istanbul',cc:'tr',ac:'Airbus A330-300'},
-            {al:'Delta',city:'New York JFK',cc:'us',ac:'Boeing 767-300'},
-            {al:'Air France',city:'Paris CDG',cc:'fr',ac:'Airbus A320'},
-            {al:'Lufthansa',city:'Frankfurt',cc:'de',ac:'Airbus A321neo'},
-            {al:'Emirates',city:'Dubai',cc:'ae',ac:'Boeing 777-300ER'},
-            {al:'British Airways',city:'London City',cc:'gb',ac:'Embraer E190'},
-            {al:'SAS Scandinavian',city:'Copenhagen',cc:'dk',ac:'Airbus A320neo'},
-            {al:'Transavia',city:'Barcelona',cc:'es',ac:'Boeing 737-800'},
-            {al:'easyJet',city:'Nice',cc:'fr',ac:'Airbus A320'},
-            {al:'United',city:'Washington IAD',cc:'us',ac:'Boeing 787-10'},
-            {al:'Qatar Airways',city:'Doha',cc:'qa',ac:'Airbus A350-900'},
+            {al:'KLM',city:'London Heathrow',iata:'LHR',cc:'gb',ac:'Boeing 787-9'},
+            {al:'Turkish Airlines',city:'Istanbul',iata:'IST',cc:'tr',ac:'Airbus A330-300'},
+            {al:'Delta',city:'New York JFK',iata:'JFK',cc:'us',ac:'Boeing 767-300'},
+            {al:'Air France',city:'Paris CDG',iata:'CDG',cc:'fr',ac:'Airbus A320'},
+            {al:'Lufthansa',city:'Frankfurt',iata:'FRA',cc:'de',ac:'Airbus A321neo'},
+            {al:'Emirates',city:'Dubai',iata:'DXB',cc:'ae',ac:'Boeing 777-300ER'},
+            {al:'British Airways',city:'London City',iata:'LCY',cc:'gb',ac:'Embraer E190'},
+            {al:'SAS Scandinavian',city:'Copenhagen',iata:'CPH',cc:'dk',ac:'Airbus A320neo'},
+            {al:'Transavia',city:'Barcelona',iata:'BCN',cc:'es',ac:'Boeing 737-800'},
+            {al:'easyJet',city:'Nice',iata:'NCE',cc:'fr',ac:'Airbus A320'},
+            {al:'United',city:'Washington',iata:'IAD',cc:'us',ac:'Boeing 787-10'},
+            {al:'Qatar Airways',city:'Doha',iata:'DOH',cc:'qa',ac:'Airbus A350-900'},
         ];
         for (let i = -4; i <= 32; i += 3) {
             const mins = base + i;
@@ -733,6 +769,7 @@
                 flight: 'KL'+Math.floor(Math.random()*9000+1000),
                 carrier: s.al,
                 city: s.city,
+                iata: s.iata,
                 countryCode: s.cc,
                 aircraft: s.ac,
                 status: i < 0 ? 'landed' : (Math.random() > 0.85 ? 'delayed' : 'expected'),
@@ -762,16 +799,17 @@
                         time = String(a.getHours()).padStart(2,'0') + ':' + String(a.getMinutes()).padStart(2,'0');
                     }
 
-                    const iata = (f.route?.destinations||[])[0] || '';
-                    const iataClean = iata.replace(/[^A-Z]/gi,'').slice(0,3).toUpperCase();
-                    const cc = f.cityInfo?.country?.toLowerCase() || getCountryCode(iataClean);
-                    const city = f.cityInfo?.city || iata || '';
+                    const rawIata = (f.route?.destinations||[])[0] || '';
+                    const ap = getAirportInfo(rawIata);
+                    const cc = f.cityInfo?.country?.toLowerCase() || ap.cc;
+                    const city = f.cityInfo?.city || ap.city;
+                    const iataCode = ap.iata || rawIata;
                     const carrier = getAirlineName(f.prefixICAO, f.flightName);
-                    const acCode = f.aircraftType?.iataMain || f.aircraftType?.iataSub || '';
+                    const acCode = f.aircraftType?.iataSub || f.aircraftType?.iataMain || '';
                     const aircraft = getAircraftName(acCode);
                     const status = (f.publicFlightState?.flightStates||[])[0] || 'expected';
 
-                    return { time, flight: f.flightName||'', carrier, city, countryCode: cc, aircraft, status };
+                    return { time, flight: f.flightName||'', carrier, city, iata: iataCode, countryCode: cc, aircraft, status };
                 });
 
                 render(cached.length ? cached : mockFlights());
