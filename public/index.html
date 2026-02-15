@@ -490,18 +490,39 @@
 
     // ── Aircraft type map (IATA code → readable) ──
     const AIRCRAFT = {
-        '737':'Boeing 737','73H':'Boeing 737-800','738':'Boeing 737-800','73W':'Boeing 737-700','73G':'Boeing 737-700','73J':'Boeing 737-900','739':'Boeing 737-900',
+        // Boeing 737
+        '737':'Boeing 737','73G':'Boeing 737-700','73W':'Boeing 737-700','73H':'Boeing 737-800','738':'Boeing 737-800',
+        '73J':'Boeing 737-900','739':'Boeing 737-900',
         '7M8':'Boeing 737 MAX 8','7M9':'Boeing 737 MAX 9',
-        '772':'Boeing 777-200','77W':'Boeing 777-300ER','773':'Boeing 777-300',
-        '788':'Boeing 787-8','789':'Boeing 787-9','78X':'Boeing 787-10',
-        '744':'Boeing 747-400','74H':'Boeing 747-8',
+        // Boeing 747
+        '744':'Boeing 747-400','74H':'Boeing 747-8','74N':'Boeing 747-400','74Y':'Boeing 747-400',
+        // Boeing 767
+        '76W':'Boeing 767-300ER','763':'Boeing 767-300','764':'Boeing 767-400',
+        // Boeing 777
+        '772':'Boeing 777-200','773':'Boeing 777-300','77W':'Boeing 777-300ER','77X':'Boeing 777X',
+        // Boeing 787
+        '781':'Boeing 787-8','788':'Boeing 787-8','789':'Boeing 787-9','78X':'Boeing 787-10',
+        // Airbus A220
+        '223':'Airbus A220-300','221':'Airbus A220-100',
+        // Airbus A318-A321
+        '318':'Airbus A318','319':'Airbus A319','320':'Airbus A320','321':'Airbus A321',
         '32A':'Airbus A320','32B':'Airbus A321','32N':'Airbus A320neo','32Q':'Airbus A321neo',
-        '319':'Airbus A319','318':'Airbus A318',
-        '332':'Airbus A330-200','333':'Airbus A330-300','33H':'Airbus A330-800','339':'Airbus A330-900',
+        '32X':'Airbus A321neo',
+        // Airbus A330
+        '332':'Airbus A330-200','333':'Airbus A330-300','33H':'Airbus A330-800','339':'Airbus A330-900neo',
+        '33X':'Airbus A330-900neo','33Y':'Airbus A330-200',
+        // Airbus A340
+        '346':'Airbus A340-600','343':'Airbus A340-300',
+        // Airbus A350
         '359':'Airbus A350-900','35K':'Airbus A350-1000',
-        '388':'Airbus A380-800',
-        'E90':'Embraer E190','E95':'Embraer E195','E75':'Embraer E175','290':'Embraer E190-E2','295':'Embraer E195-E2',
-        'CR9':'Bombardier CRJ-900','DH4':'Dash 8-Q400','AT7':'ATR 72',
+        // Airbus A380
+        '388':'Airbus A380',
+        // Embraer
+        'E90':'Embraer E190','E95':'Embraer E195','E7W':'Embraer E175','E75':'Embraer E175',
+        '290':'Embraer E190-E2','295':'Embraer E195-E2',
+        // Regional
+        'CR9':'Bombardier CRJ-900','CRK':'Bombardier CRJ-1000','CRJ':'Bombardier CRJ',
+        'DH4':'Dash 8-Q400','AT7':'ATR 72','AT5':'ATR 42',
     };
 
     // ── Airport database: IATA → {city, country code} ──
