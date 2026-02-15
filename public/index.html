@@ -723,10 +723,11 @@
             const flagHtml = cc
                 ? `<img class="flag" src="https://flagcdn.com/w40/${cc}.png" alt="${cc}" onerror="this.style.display='none'">`
                 : '';
-            const iataTag = f.iata ? ` <span style="color:var(--text-dim);font-size:0.65rem">(${f.iata})</span>` : '';
+            const iataTag = f.iata ? `<span style="color:var(--text-dim);font-size:0.65rem"> (${f.iata})</span>` : '';
+            const csText = f.codeshares && f.codeshares.length ? `<span style="color:var(--text-dim);font-size:0.6rem;font-family:var(--font-body);font-weight:400"> +${f.codeshares.length}</span>` : '';
             return `<div class="fids-row" style="animation-delay:${i*0.03}s">
                 <span class="time">${f.time}</span>
-                <span class="flight">${f.flight}</span>
+                <span class="flight">${f.flight}${csText}</span>
                 <span class="carrier">${f.carrier}</span>
                 <span class="origin">${flagHtml}${f.city}${iataTag}</span>
                 <span class="aircraft">${f.aircraft}</span>
@@ -791,7 +792,10 @@
             .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
             .then(data => {
                 const raw = data.flights || [];
-                cached = raw.map(f => {
+                cached = raw.filter(f => {
+                    // Keep only main/operating flights (filter codeshares)
+                    return !f.mainFlight || f.flightName === f.mainFlight;
+                }).map(f => {
                     let time = f.scheduleTime?.slice(0,5) || '';
                     if (f.scheduleDateTime) {
                         const d = new Date(f.scheduleDateTime);
@@ -809,7 +813,10 @@
                     const aircraft = getAircraftName(acCode);
                     const status = (f.publicFlightState?.flightStates||[])[0] || 'expected';
 
-                    return { time, flight: f.flightName||'', carrier, city, iata: iataCode, countryCode: cc, aircraft, status };
+                    const isMainFlight = !f.mainFlight || f.flightName === f.mainFlight;
+                    const codeshares = (f.codeshares?.codeshares || []).filter(c => c !== f.flightName);
+
+                    return { time, flight: f.flightName||'', carrier, city, iata: iataCode, countryCode: cc, aircraft, status, isMainFlight, codeshares, mainFlight: f.mainFlight };
                 });
 
                 render(cached.length ? cached : mockFlights());
