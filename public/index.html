@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2790%27%3E%F0%9F%87%AB%F0%9F%87%B7%3C/text%3E%3C/svg%3E">
-    <title>lofi ATC · Paris Charles de Gaulle</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2790%27%3E%E2%9C%88%EF%B8%8F%3C/text%3E%3C/svg%3E">
+    <title>lofi ATC · Live Air Traffic Control</title>
 
-    <meta property="og:title" content="Lo-fi Air Traffic Control · Paris CDG">
-    <meta property="og:description" content="Live ATC radio from Paris CDG mixed with lofi beats. Real-time arrivals. Chill vibes.">
+    <meta property="og:title" content="Lo-fi Air Traffic Control">
+    <meta property="og:description" content="Live ATC radio mixed with lofi beats. Real-time arrivals from airports worldwide. Chill vibes.">
     <meta property="og:url" content="https://lofi-atc-ams.co-evolve.nl">
     <meta name="twitter:card" content="summary_large_image">
 
@@ -162,6 +162,80 @@
         }
 
         .lofi-mini iframe { border: none; border-radius: 6px; }
+
+        /* Airport selector */
+        .apt-selector { position: relative; }
+
+        .apt-btn {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(240, 165, 0, 0.3);
+            background: rgba(240, 165, 0, 0.08);
+            color: var(--amber);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+        }
+
+        .apt-btn:hover { background: rgba(240, 165, 0, 0.15); border-color: var(--amber); }
+
+        .apt-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 4px;
+            background: #111827;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            min-width: 240px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            padding: 4px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.1) transparent;
+        }
+
+        .apt-dropdown.open { display: block; }
+
+        .apt-dropdown .apt-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--text);
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.15s;
+        }
+
+        .apt-dropdown .apt-option:hover { background: rgba(255,255,255,0.06); }
+        .apt-dropdown .apt-option.active { background: rgba(240, 165, 0, 0.12); color: var(--amber); }
+
+        .apt-dropdown .apt-option .apt-code {
+            font-weight: 700;
+            color: var(--amber);
+            min-width: 32px;
+        }
+
+        .apt-dropdown .apt-region {
+            padding: 6px 12px 4px;
+            font-size: 0.58rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-dim);
+            font-family: var(--font-mono);
+        }
 
         /* ── Main Content ── */
         .main {
@@ -417,8 +491,12 @@
 <div class="app">
     <!-- Top Bar -->
     <header class="topbar">
-        <div class="topbar-brand">lofi ATC · <span>paris cdg</span></div>
+        <div class="topbar-brand">lofi ATC · <span id="brandAirport">amsterdam</span></div>
         <div class="topbar-clock" id="clock"></div>
+        <div class="apt-selector">
+            <button class="apt-btn" id="aptBtn" title="Switch airport">✈ AMS ▾</button>
+            <div class="apt-dropdown" id="aptDropdown"></div>
+        </div>
         <div class="topbar-audio">
             <button class="atc-btn" id="atcBtn">
                 <span class="status-dot" id="dot"></span>
@@ -437,7 +515,7 @@
         <!-- Flights -->
         <section class="fids">
             <div class="fids-bar">
-                <span class="fids-title">✈ Arrivals · Paris CDG</span>
+                <span class="fids-title" id="fidsTitle">✈ Arrivals</span>
                 <span class="fids-meta">
                     <span class="spinner" id="spin"></span>
                     <span id="metaText">loading</span>
@@ -457,7 +535,7 @@
 
         <!-- Radar -->
         <section class="radar">
-            <span class="radar-label">Live Radar · CDG</span>
+            <span class="radar-label" id="radarLabel">Live Radar</span>
             <iframe id="radarFrame" src="" loading="lazy"></iframe>
         </section>
     </div>
@@ -624,21 +702,145 @@
     // ── Clock ──
     function updateClock() {
         const now = new Date();
-        const paris = now.toLocaleTimeString('fr-FR', { timeZone:'Europe/Paris', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        const local = now.toLocaleTimeString('en-GB', { timeZone: cfg.tz, hour:'2-digit', minute:'2-digit', second:'2-digit' });
         const utc = now.toUTCString().slice(17, 25);
-        document.getElementById('clock').textContent = paris + ' CDG · ' + utc + ' UTC';
+        document.getElementById('clock').textContent = local + ' ' + cfg.tzLabel + ' · ' + utc + ' UTC';
     }
     updateClock();
     setInterval(updateClock, 1000);
 
+    // ── Airport selector ──
+    const aptBtn = document.getElementById('aptBtn');
+    const aptDropdown = document.getElementById('aptDropdown');
+
+    function buildDropdown() {
+        let html = '';
+        for (const [region, codes] of Object.entries(REGIONS)) {
+            html += `<div class="apt-region">${region}</div>`;
+            for (const code of codes) {
+                const a = AIRPORTS_CONFIG[code];
+                const active = code === currentAirport ? ' active' : '';
+                html += `<div class="apt-option${active}" data-code="${code}">
+                    <span class="apt-code">${code}</span>
+                    <span>${a.flag} ${a.name}</span>
+                </div>`;
+            }
+        }
+        aptDropdown.innerHTML = html;
+    }
+    buildDropdown();
+
+    function updateBrand() {
+        document.getElementById('brandAirport').textContent = cfg.brand;
+        aptBtn.textContent = '✈ ' + currentAirport + ' ▾';
+        document.getElementById('fidsTitle').textContent = '✈ Arrivals · ' + cfg.name;
+        document.getElementById('radarLabel').textContent = 'Live Radar · ' + currentAirport;
+        document.title = 'lofi ATC · ' + cfg.name;
+    }
+    updateBrand();
+
+    aptBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        aptDropdown.classList.toggle('open');
+    });
+
+    document.addEventListener('click', () => aptDropdown.classList.remove('open'));
+
+    aptDropdown.addEventListener('click', (e) => {
+        const opt = e.target.closest('.apt-option');
+        if (!opt) return;
+        const code = opt.dataset.code;
+        if (code === currentAirport) { aptDropdown.classList.remove('open'); return; }
+
+        currentAirport = code;
+        cfg = AIRPORTS_CONFIG[code];
+        ATC_URLS = getAtcUrls();
+        localStorage.setItem('lofi-atc-airport', code);
+
+        // Stop current ATC
+        if (playing) {
+            audio.pause(); audio.src = '';
+            playing = false;
+            dot.className = 'status-dot';
+            atcLabel.textContent = '▶ ATC';
+            atcBtn.classList.remove('playing');
+        }
+
+        updateBrand();
+        buildDropdown();
+        aptDropdown.classList.remove('open');
+
+        // Update radar
+        document.getElementById('radarFrame').src =
+            'https://globe.adsbexchange.com/?lat=' + cfg.lat + '&lon=' + cfg.lon + '&zoom=10.5&hideButtons&hideSidebar';
+
+        // Fetch new flights
+        cached = null;
+        fetchFlights();
+    });
+
     // ── ATC Audio ──
-    const ATC_URLS = [
-        'https://d.liveatc.net/lfpg3_dep',
-        'https://d.liveatc.net/lfpg3_app',
-        'https://d.liveatc.net/lfpg3_twr',
-        'https://s2-fmt2.liveatc.net/lfpg3_dep',
-        'https://s2-fmt2.liveatc.net/lfpg3_app',
-    ];
+    // ── Airport configs ──
+    const AIRPORTS_CONFIG = {
+        AMS: { name:'Amsterdam Schiphol', brand:'amsterdam', tz:'Europe/Amsterdam', tzLabel:'AMS',
+            lat:52.309, lon:4.764, api:'arrivals',
+            atc:['eham_app_119055','eham_app'], icao:'EHAM', flag:'🇳🇱' },
+        LHR: { name:'London Heathrow', brand:'london heathrow', tz:'Europe/London', tzLabel:'LHR',
+            lat:51.470, lon:-0.454, api:'arrivals-cdg&arr_iata=LHR',
+            atc:['egll_twr','egll_gnd'], icao:'EGLL', flag:'🇬🇧' },
+        FRA: { name:'Frankfurt', brand:'frankfurt', tz:'Europe/Berlin', tzLabel:'FRA',
+            lat:50.033, lon:8.570, api:'arrivals-cdg&arr_iata=FRA',
+            atc:['eddf_twr','eddf_app','eddf_app_north'], icao:'EDDF', flag:'🇩🇪' },
+        ZRH: { name:'Zurich', brand:'zurich', tz:'Europe/Zurich', tzLabel:'ZRH',
+            lat:47.458, lon:8.548, api:'arrivals-cdg&arr_iata=ZRH',
+            atc:['lszh_twr','lszh_app'], icao:'LSZH', flag:'🇨🇭' },
+        BCN: { name:'Barcelona', brand:'barcelona', tz:'Europe/Madrid', tzLabel:'BCN',
+            lat:41.297, lon:2.078, api:'arrivals-cdg&arr_iata=BCN',
+            atc:['lebl_app','lebl_twr'], icao:'LEBL', flag:'🇪🇸' },
+        FCO: { name:'Rome Fiumicino', brand:'rome', tz:'Europe/Rome', tzLabel:'FCO',
+            lat:41.800, lon:12.238, api:'arrivals-cdg&arr_iata=FCO',
+            atc:['lirf_twr','lirf_app'], icao:'LIRF', flag:'🇮🇹' },
+        IST: { name:'Istanbul', brand:'istanbul', tz:'Europe/Istanbul', tzLabel:'IST',
+            lat:41.262, lon:28.727, api:'arrivals-cdg&arr_iata=IST',
+            atc:['ltfm_app','ltfm_twr'], icao:'LTFM', flag:'🇹🇷' },
+        JFK: { name:'New York JFK', brand:'new york jfk', tz:'America/New_York', tzLabel:'JFK',
+            lat:40.641, lon:-73.778, api:'arrivals-cdg&arr_iata=JFK',
+            atc:['kjfk_app_final','kjfk_twr'], icao:'KJFK', flag:'🇺🇸' },
+        LAX: { name:'Los Angeles', brand:'los angeles', tz:'America/Los_Angeles', tzLabel:'LAX',
+            lat:33.942, lon:-118.408, api:'arrivals-cdg&arr_iata=LAX',
+            atc:['klax_twr','klax_app_n'], icao:'KLAX', flag:'🇺🇸' },
+        SFO: { name:'San Francisco', brand:'san francisco', tz:'America/Los_Angeles', tzLabel:'SFO',
+            lat:37.621, lon:-122.379, api:'arrivals-cdg&arr_iata=SFO',
+            atc:['ksfo_twr'], icao:'KSFO', flag:'🇺🇸' },
+        ATL: { name:'Atlanta', brand:'atlanta', tz:'America/New_York', tzLabel:'ATL',
+            lat:33.640, lon:-84.428, api:'arrivals-cdg&arr_iata=ATL',
+            atc:['katl_app_s','katl_twr'], icao:'KATL', flag:'🇺🇸' },
+        ORD: { name:'Chicago O\'Hare', brand:'chicago', tz:'America/Chicago', tzLabel:'ORD',
+            lat:41.974, lon:-87.907, api:'arrivals-cdg&arr_iata=ORD',
+            atc:['kord_app_c','kord_twr'], icao:'KORD', flag:'🇺🇸' },
+        NRT: { name:'Tokyo Narita', brand:'tokyo narita', tz:'Asia/Tokyo', tzLabel:'NRT',
+            lat:35.764, lon:140.386, api:'arrivals-cdg&arr_iata=NRT',
+            atc:['rjaa_app','rjaa_twr'], icao:'RJAA', flag:'🇯🇵' },
+        SIN: { name:'Singapore Changi', brand:'singapore', tz:'Asia/Singapore', tzLabel:'SIN',
+            lat:1.350, lon:103.994, api:'arrivals-cdg&arr_iata=SIN',
+            atc:['wsss_app','wsss_twr'], icao:'WSSS', flag:'🇸🇬' },
+    };
+
+    const REGIONS = {
+        'Europe': ['AMS','LHR','FRA','ZRH','BCN','FCO','IST'],
+        'Americas': ['JFK','LAX','SFO','ATL','ORD'],
+        'Asia-Pacific': ['NRT','SIN'],
+    };
+
+    let currentAirport = localStorage.getItem('lofi-atc-airport') || 'AMS';
+    if (!AIRPORTS_CONFIG[currentAirport]) currentAirport = 'AMS';
+    let cfg = AIRPORTS_CONFIG[currentAirport];
+
+    // Build ATC URLs from config
+    function getAtcUrls() {
+        return cfg.atc.map(s => 'https://d.liveatc.net/' + s);
+    }
+    let ATC_URLS = getAtcUrls();
     const audio = document.getElementById('atcAudio');
     const atcBtn = document.getElementById('atcBtn');
     const dot = document.getElementById('dot');
@@ -697,13 +899,12 @@
     }
 
     // ── Radar ──
-    // CDG coordinates: 49.0097, 2.5479
     document.getElementById('radarFrame').src =
-        'https://globe.adsbexchange.com/?lat=49.010&lon=2.548&zoom=10.5&hideButtons&hideSidebar';
+        'https://globe.adsbexchange.com/?lat=' + cfg.lat + '&lon=' + cfg.lon + '&zoom=10.5&hideButtons&hideSidebar';
 
     // ── Helpers ──
-    function getNowParis() {
-        return new Date(new Date().toLocaleString('en-US', { timeZone:'Europe/Paris' }));
+    function getNowLocal() {
+        return new Date(new Date().toLocaleString('en-US', { timeZone: cfg.tz }));
     }
 
     function getAirlineName(icao, flightName) {
@@ -758,7 +959,7 @@
     function render(flights) {
         const board = document.getElementById('board');
         const footer = document.getElementById('footer');
-        const now = getNowParis();
+        const now = getNowLocal();
         const nowMins = now.getHours() * 60 + now.getMinutes();
 
         // Filter: -5 min → +30 min
@@ -797,12 +998,12 @@
         const to = new Date(now.getTime() + 30*60000);
         const hTo = String(to.getHours()).padStart(2,'0');
         const mTo = String(to.getMinutes()).padStart(2,'0');
-        footer.textContent = `${filtered.length} flights · now – ${hTo}:${mTo} CDG`;
+        footer.textContent = `${filtered.length} flights · now – ${hTo}:${mTo} ${cfg.tzLabel}`;
     }
 
     // ── Mock data ──
     function mockFlights() {
-        const now = getNowParis();
+        const now = getNowLocal();
         const base = now.getHours()*60 + now.getMinutes();
         const list = [];
         const samples = [
@@ -847,7 +1048,10 @@
         spin.classList.add('on');
         meta.textContent = 'updating…';
 
-        fetch('/.netlify/functions/arrivals-cdg')
+        const apiUrl = cfg.api.includes('?') ? '/.netlify/functions/' + cfg.api :
+            cfg.api.includes('&') ? '/.netlify/functions/' + cfg.api.replace('&','?') :
+            '/.netlify/functions/' + cfg.api;
+        fetch(apiUrl)
             .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
             .then(data => {
                 const raw = data.flights || [];
@@ -855,7 +1059,7 @@
                     let time = f.scheduleTime?.slice(0,5) || '';
                     if (f.scheduleDateTime) {
                         const d = new Date(f.scheduleDateTime);
-                        const a = new Date(d.toLocaleString('en-US',{timeZone:'Europe/Paris'}));
+                        const a = new Date(d.toLocaleString('en-US',{timeZone: cfg.tz}));
                         time = String(a.getHours()).padStart(2,'0') + ':' + String(a.getMinutes()).padStart(2,'0');
                     }
 

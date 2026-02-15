@@ -1,17 +1,20 @@
 const axios = require('axios');
 
-// Cache
-let flightCache = null;
-let cacheTime = 0;
+// Cache per airport
+const flightCaches = {};
 const CACHE_MS = 5 * 60 * 1000; // 5 min
 
 exports.handler = async function(event, context) {
+    const queryParams = event.queryStringParameters || {};
+    const cacheKey = (queryParams.arr_iata || 'CDG').toUpperCase();
+
     // Check cache
-    if (flightCache && (Date.now() - cacheTime) < CACHE_MS) {
+    const cached = flightCaches[cacheKey];
+    if (cached && (Date.now() - cached.time) < CACHE_MS) {
         return {
             statusCode: 200,
             headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, s-maxage=60' },
-            body: JSON.stringify({ ...flightCache, cached: true, cacheAge: Math.round((Date.now() - cacheTime) / 1000) })
+            body: JSON.stringify({ ...cached.data, cached: true, cacheAge: Math.round((Date.now() - cached.time) / 1000) })
         };
     }
 
@@ -20,17 +23,21 @@ exports.handler = async function(event, context) {
         return { statusCode: 500, body: JSON.stringify({ error: 'No API key configured' }) };
     }
 
+    // Support any airport via query param (default CDG)
+    const queryParams = event.queryStringParameters || {};
+    const arrIata = (queryParams.arr_iata || 'CDG').toUpperCase();
+
     try {
-        // Fetch scheduled + active arrivals at CDG
+        // Fetch scheduled + active arrivals
         const [scheduled, active, landed] = await Promise.all([
             axios.get('http://api.aviationstack.com/v1/flights', {
-                params: { access_key: apiKey, arr_iata: 'CDG', flight_status: 'scheduled', limit: 100 }
+                params: { access_key: apiKey, arr_iata: arrIata, flight_status: 'scheduled', limit: 100 }
             }).catch(() => ({ data: { data: [] } })),
             axios.get('http://api.aviationstack.com/v1/flights', {
-                params: { access_key: apiKey, arr_iata: 'CDG', flight_status: 'active', limit: 100 }
+                params: { access_key: apiKey, arr_iata: arrIata, flight_status: 'active', limit: 100 }
             }).catch(() => ({ data: { data: [] } })),
             axios.get('http://api.aviationstack.com/v1/flights', {
-                params: { access_key: apiKey, arr_iata: 'CDG', flight_status: 'landed', limit: 50 }
+                params: { access_key: apiKey, arr_iata: arrIata, flight_status: 'landed', limit: 50 }
             }).catch(() => ({ data: { data: [] } })),
         ]);
 
@@ -87,8 +94,7 @@ exports.handler = async function(event, context) {
             meta: { totalFlights: flights.length, airport: 'CDG', timestamp: new Date().toISOString() }
         };
 
-        flightCache = result;
-        cacheTime = Date.now();
+        flightCaches[arrIata] = { data: result, time: Date.now() };
 
         return {
             statusCode: 200,
