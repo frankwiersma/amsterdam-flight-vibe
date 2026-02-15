@@ -471,21 +471,52 @@
 
     // ── Airline name map (ICAO prefix → name) ──
     const AIRLINES = {
-        KLM:'KLM Royal Dutch',TRA:'Transavia',HV:'Transavia',KLC:'KLM Cityhopper',
-        BAW:'British Airways',DLH:'Lufthansa',AFR:'Air France',EZY:'easyJet',EJU:'easyJet',
-        RYR:'Ryanair',FR:'Ryanair',VLG:'Vueling',IBE:'Iberia',TAP:'TAP Portugal',
-        SAS:'SAS Scandinavian',FIN:'Finnair',AUA:'Austrian',SWR:'SWISS',BEL:'Brussels Airlines',
-        LOT:'LOT Polish',CSA:'Czech Airlines',MAH:'Malév',THY:'Turkish Airlines',
-        UAE:'Emirates',ETD:'Etihad',QTR:'Qatar Airways',SVA:'Saudia',RJA:'Royal Jordanian',
-        ELY:'El Al',MEA:'Middle East Airlines',
-        DAL:'Delta',AAL:'American',UAL:'United',
-        ACA:'Air Canada',SIA:'Singapore Airlines',CPA:'Cathay Pacific',
-        ANA:'All Nippon',JAL:'Japan Airlines',CCA:'Air China',CES:'China Eastern',CSN:'China Southern',
-        KAL:'Korean Air',EVA:'EVA Air',MAS:'Malaysia Airlines',THA:'Thai Airways',GIA:'Garuda Indonesia',
-        QFA:'Qantas',ETH:'Ethiopian',SAA:'South African',RAM:'Royal Air Maroc',
-        NOS:'Neos',TUI:'TUI fly',CAI:'Corendon',SXS:'SunExpress',PGT:'Pegasus',WZZ:'Wizz Air',
-        ICE:'Icelandair',NAX:'Norwegian',DY:'Norwegian',WIF:'Widerøe',
-        TAR:'Tunisair',AMC:'Air Malta',AEE:'Aegean Airlines',OAL:'Olympic Air',ALK:'SriLankan',
+        // Netherlands
+        KLM:'KLM Royal Dutch',TRA:'Transavia',HV:'Transavia',KLC:'KLM Cityhopper',TFL:'TUI fly Netherlands',
+        // UK/Ireland
+        BAW:'British Airways',EZY:'easyJet',EJU:'easyJet Europe',EZS:'easyJet Switzerland',VIR:'Virgin Atlantic',EIN:'Aer Lingus',
+        // Germany/Austria/Switzerland
+        DLH:'Lufthansa',AUA:'Austrian Airlines',SWR:'SWISS',EWG:'Eurowings',
+        // France
+        AFR:'Air France',TVF:'Transavia France',
+        // Iberian
+        VLG:'Vueling',IBE:'Iberia',TAP:'TAP Air Portugal',AEA:'Air Europa',
+        // Scandinavia
+        SAS:'SAS Scandinavian',FIN:'Finnair',ICE:'Icelandair',NOZ:'Norwegian',NAX:'Norwegian',DY:'Norwegian',DLA:'Norwegian Air Sweden',WIF:'Widerøe',
+        // Eastern Europe
+        LOT:'LOT Polish Airlines',CSA:'Czech Airlines',ROT:'TAROM',LZB:'Bulgaria Air',CTN:'Croatia Airlines',ASL:'Air Serbia',
+        // Southern Europe
+        AEE:'Aegean Airlines',OAL:'Olympic Air',ITY:'ITA Airways',KMM:'Air Malta',
+        // Middle East
+        THY:'Turkish Airlines',PGT:'Pegasus Airlines',SXS:'SunExpress',
+        UAE:'Emirates',ETD:'Etihad Airways',QTR:'Qatar Airways',SVA:'Saudia',GFA:'Gulf Air',OMA:'Oman Air',KAC:'Kuwait Airways',
+        ELY:'El Al',MEA:'Middle East Airlines',RJA:'Royal Jordanian',MSR:'EgyptAir',
+        // Americas
+        DAL:'Delta Air Lines',AAL:'American Airlines',UAL:'United Airlines',JBU:'JetBlue',
+        ACA:'Air Canada',WJA:'WestJet',AMX:'Aeroméxico',LAN:'LATAM Airlines',CMP:'Copa Airlines',GLO:'Gol Airlines',
+        // Asia-Pacific
+        SIA:'Singapore Airlines',CPA:'Cathay Pacific',
+        ANA:'All Nippon Airways',JAL:'Japan Airlines',
+        CAO:'Air China',CES:'China Eastern',CSN:'China Southern',CXA:'Xiamen Air',
+        KAL:'Korean Air',EVA:'EVA Air',CAL:'China Airlines',
+        MAS:'Malaysia Airlines',THA:'Thai Airways',GIA:'Garuda Indonesia',HVN:'Vietnam Airlines',
+        AIC:'Air India',IGO:'IndiGo',
+        QFA:'Qantas',VAU:'Vistara',
+        // Africa
+        ETH:'Ethiopian Airlines',SAA:'South African Airways',RAM:'Royal Air Maroc',
+        KQA:'Kenya Airways',MAU:'Air Mauritius',REU:'Air Austral',
+        // Cargo
+        CKK:'China Cargo Airlines',CKS:'Kalitta Air',CLX:'Cargolux',
+        // Low-cost/Charter
+        RYR:'Ryanair',FR:'Ryanair',NSZ:'Wizz Air',WZZ:'Wizz Air',NOS:'Neos',TUI:'TUI fly',CAI:'Corendon',
+        // Baltics
+        BTI:'airBaltic',
+        // Other
+        ALK:'SriLankan Airlines',NGT:'Neos Air Georgia',BCS:'European Air Charter',
+        AIZ:'Arkia Israeli',AZG:'Silk Way Airlines',SEH:'Fly Play',LVL:'Liviu Airlines',
+        MAC:'Air Arabia Maroc',MNB:'MNG Airlines',SLM:'Surinam Airways',
+        TAR:'Tunisair',TGZ:'Avianca Guatemala',TKJ:'Lani Airlines',YZR:'Yangtze River Express',
+        CND:'Cargolux Italia',
     };
 
     // ── Aircraft type map (IATA code → readable) ──
