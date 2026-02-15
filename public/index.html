@@ -700,53 +700,56 @@
     };
 
     // ── Airport configs (must be first!) ──
+    // ── Airport configs ──
+    // Feed names verified against liveatc.net hlisten.php mount= URLs
+    // Removed: LHR/FRA/BCN/FCO/IST (ATC broadcasting illegal or not covered)
     const AIRPORTS_CONFIG = {
         AMS: { name:'Amsterdam Schiphol', brand:'amsterdam', tz:'Europe/Amsterdam', tzLabel:'AMS',
             lat:52.309, lon:4.764, api:'arrivals',
-            atc:['eham_app_119055','eham_app'], icao:'EHAM', flag:'🇳🇱' },
-        LHR: { name:'London Heathrow', brand:'london heathrow', tz:'Europe/London', tzLabel:'LHR',
-            lat:51.470, lon:-0.454, api:'arrivals-cdg&arr_iata=LHR',
-            atc:['egll_twr','egll_gnd'], icao:'EGLL', flag:'🇬🇧' },
-        FRA: { name:'Frankfurt', brand:'frankfurt', tz:'Europe/Berlin', tzLabel:'FRA',
-            lat:50.033, lon:8.570, api:'arrivals-cdg&arr_iata=FRA',
-            atc:['eddf_twr','eddf_app','eddf_app_north'], icao:'EDDF', flag:'🇩🇪' },
+            atc:['eham_app_119055','eham_twr_18c36c','eham_twr_0624'], icao:'EHAM', flag:'🇳🇱' },
         ZRH: { name:'Zurich', brand:'zurich', tz:'Europe/Zurich', tzLabel:'ZRH',
             lat:47.458, lon:8.548, api:'arrivals-cdg&arr_iata=ZRH',
-            atc:['lszh_twr','lszh_app'], icao:'LSZH', flag:'🇨🇭' },
-        BCN: { name:'Barcelona', brand:'barcelona', tz:'Europe/Madrid', tzLabel:'BCN',
-            lat:41.297, lon:2.078, api:'arrivals-cdg&arr_iata=BCN',
-            atc:['lebl_app','lebl_twr'], icao:'LEBL', flag:'🇪🇸' },
-        FCO: { name:'Rome Fiumicino', brand:'rome', tz:'Europe/Rome', tzLabel:'FCO',
-            lat:41.800, lon:12.238, api:'arrivals-cdg&arr_iata=FCO',
-            atc:['lirf_twr','lirf_app'], icao:'LIRF', flag:'🇮🇹' },
-        IST: { name:'Istanbul', brand:'istanbul', tz:'Europe/Istanbul', tzLabel:'IST',
-            lat:41.262, lon:28.727, api:'arrivals-cdg&arr_iata=IST',
-            atc:['ltfm_app','ltfm_twr'], icao:'LTFM', flag:'🇹🇷' },
+            atc:['lszh_twr','lszh_app_east','lszh3_twr'], icao:'LSZH', flag:'🇨🇭' },
+        DUB: { name:'Dublin', brand:'dublin', tz:'Europe/Dublin', tzLabel:'DUB',
+            lat:53.421, lon:-6.270, api:'arrivals-cdg&arr_iata=DUB',
+            atc:['eidw3','eidw8','eidw2'], icao:'EIDW', flag:'🇮🇪' },
+        BRU: { name:'Brussels', brand:'brussels', tz:'Europe/Brussels', tzLabel:'BRU',
+            lat:50.901, lon:4.484, api:'arrivals-cdg&arr_iata=BRU',
+            atc:['ebbr_twr_e','ebbr_arr','ebbr_ebbu'], icao:'EBBR', flag:'🇧🇪' },
+        OSL: { name:'Oslo', brand:'oslo', tz:'Europe/Oslo', tzLabel:'OSL',
+            lat:60.194, lon:11.100, api:'arrivals-cdg&arr_iata=OSL',
+            atc:['engm4'], icao:'ENGM', flag:'🇳🇴' },
+        PRG: { name:'Prague', brand:'prague', tz:'Europe/Prague', tzLabel:'PRG',
+            lat:50.101, lon:14.260, api:'arrivals-cdg&arr_iata=PRG',
+            atc:['lkpr_twr','lkpr_app','lkpr_dir'], icao:'LKPR', flag:'🇨🇿' },
+        LIS: { name:'Lisbon', brand:'lisbon', tz:'Europe/Lisbon', tzLabel:'LIS',
+            lat:38.774, lon:-9.134, api:'arrivals-cdg&arr_iata=LIS',
+            atc:['lppt_app'], icao:'LPPT', flag:'🇵🇹' },
         JFK: { name:'New York JFK', brand:'new york jfk', tz:'America/New_York', tzLabel:'JFK',
             lat:40.641, lon:-73.778, api:'arrivals-cdg&arr_iata=JFK',
-            atc:['kjfk_app_final','kjfk_twr'], icao:'KJFK', flag:'🇺🇸' },
+            atc:['kjfk_twr','kjfk_app_final','kjfk_gnd_twr'], icao:'KJFK', flag:'🇺🇸' },
         LAX: { name:'Los Angeles', brand:'los angeles', tz:'America/Los_Angeles', tzLabel:'LAX',
             lat:33.942, lon:-118.408, api:'arrivals-cdg&arr_iata=LAX',
-            atc:['klax_twr','klax_app_n'], icao:'KLAX', flag:'🇺🇸' },
+            atc:['klax_twr','klax4'], icao:'KLAX', flag:'🇺🇸' },
         SFO: { name:'San Francisco', brand:'san francisco', tz:'America/Los_Angeles', tzLabel:'SFO',
             lat:37.621, lon:-122.379, api:'arrivals-cdg&arr_iata=SFO',
             atc:['ksfo_twr'], icao:'KSFO', flag:'🇺🇸' },
         ATL: { name:'Atlanta', brand:'atlanta', tz:'America/New_York', tzLabel:'ATL',
             lat:33.640, lon:-84.428, api:'arrivals-cdg&arr_iata=ATL',
-            atc:['katl_app_s','katl_twr'], icao:'KATL', flag:'🇺🇸' },
+            atc:['katl_twr','katl_twr_08r26l','katl_gnd'], icao:'KATL', flag:'🇺🇸' },
         ORD: { name:'Chicago O\'Hare', brand:'chicago', tz:'America/Chicago', tzLabel:'ORD',
             lat:41.974, lon:-87.907, api:'arrivals-cdg&arr_iata=ORD',
-            atc:['kord_app_c','kord_twr'], icao:'KORD', flag:'🇺🇸' },
+            atc:['kord7','kord5','kord2'], icao:'KORD', flag:'🇺🇸' },
         NRT: { name:'Tokyo Narita', brand:'tokyo narita', tz:'Asia/Tokyo', tzLabel:'NRT',
             lat:35.764, lon:140.386, api:'arrivals-cdg&arr_iata=NRT',
-            atc:['rjaa_app','rjaa_twr'], icao:'RJAA', flag:'🇯🇵' },
+            atc:['rjaa_twr','rjaa_app_s','rjaa_twr1'], icao:'RJAA', flag:'🇯🇵' },
         SIN: { name:'Singapore Changi', brand:'singapore', tz:'Asia/Singapore', tzLabel:'SIN',
             lat:1.350, lon:103.994, api:'arrivals-cdg&arr_iata=SIN',
-            atc:['wsss_app','wsss_twr'], icao:'WSSS', flag:'🇸🇬' },
+            atc:['wsss2'], icao:'WSSS', flag:'🇸🇬' },
     };
 
     const REGIONS = {
-        'Europe': ['AMS','LHR','FRA','ZRH','BCN','FCO','IST'],
+        'Europe': ['AMS','ZRH','DUB','BRU','OSL','PRG','LIS'],
         'Americas': ['JFK','LAX','SFO','ATL','ORD'],
         'Asia-Pacific': ['NRT','SIN'],
     };
@@ -769,41 +772,68 @@
     let playing = false, streamIdx = 0, lofiOn = false;
 
     audio.volume = 0.25;
+    let atcTimeout = null, atcRetries = 0;
 
     function tryATC(idx) {
+        clearTimeout(atcTimeout);
         if (idx >= ATC_URLS.length) {
-            dot.className = 'status-dot error';
-            atcLabel.textContent = '✕ unavailable';
-            atcBtn.classList.remove('playing');
-            playing = false;
+            // All streams tried — auto-retry from start after 10s (max 3 retries)
+            if (atcRetries < 3) {
+                atcRetries++;
+                dot.className = 'status-dot error';
+                atcLabel.textContent = 'retrying… (' + atcRetries + '/3)';
+                atcTimeout = setTimeout(() => tryATC(0), 10000);
+            } else {
+                dot.className = 'status-dot error';
+                atcLabel.textContent = '✕ unavailable';
+                atcBtn.classList.remove('playing');
+                playing = false;
+                atcRetries = 0;
+            }
             return;
         }
         streamIdx = idx;
         atcLabel.textContent = 'connecting…';
-        audio.src = ATC_URLS[idx] + '?t=' + Date.now();
+        dot.className = 'status-dot';
+        audio.src = ATC_URLS[idx] + '?nocache=' + Date.now();
         audio.load();
+        // Timeout: if stream doesn't start within 8s, try next
+        atcTimeout = setTimeout(() => {
+            console.warn('ATC stream timeout:', ATC_URLS[idx]);
+            audio.pause(); audio.src = '';
+            tryATC(idx + 1);
+        }, 8000);
         audio.play().then(() => {
+            clearTimeout(atcTimeout);
             playing = true;
+            atcRetries = 0;
             dot.className = 'status-dot connected';
             atcLabel.textContent = '⏸ LIVE · ' + cfg.icao;
             atcBtn.classList.add('playing');
             if (!lofiOn) { startLofi(); lofiOn = true; }
-        }).catch(() => tryATC(idx + 1));
+        }).catch(e => {
+            clearTimeout(atcTimeout);
+            console.warn('ATC stream failed:', ATC_URLS[idx], e.message);
+            tryATC(idx + 1);
+        });
     }
 
     atcBtn.addEventListener('click', () => {
         if (playing) {
+            clearTimeout(atcTimeout);
             audio.pause(); audio.src = '';
             playing = false;
+            atcRetries = 0;
             dot.className = 'status-dot';
             atcLabel.textContent = '▶ ATC';
             atcBtn.classList.remove('playing');
         } else {
+            atcRetries = 0;
             tryATC(0);
         }
     });
 
-    audio.addEventListener('error', () => { if (playing) tryATC(streamIdx + 1); });
+    audio.addEventListener('error', () => { if (playing) { clearTimeout(atcTimeout); tryATC(streamIdx + 1); } });
     audio.addEventListener('ended', () => { if (playing) setTimeout(() => tryATC(0), 2000); });
 
     volSlider.addEventListener('input', e => {
@@ -874,13 +904,14 @@
         ATC_URLS = getAtcUrls();
         localStorage.setItem('lofi-atc-airport', code);
 
-        if (playing) {
-            audio.pause(); audio.src = '';
-            playing = false;
-            dot.className = 'status-dot';
-            atcLabel.textContent = '▶ ATC';
-            atcBtn.classList.remove('playing');
-        }
+        // Stop current ATC stream and reset state
+        clearTimeout(atcTimeout);
+        audio.pause(); audio.src = '';
+        playing = false;
+        atcRetries = 0;
+        dot.className = 'status-dot';
+        atcLabel.textContent = '▶ ATC';
+        atcBtn.classList.remove('playing');
 
         updateBrand();
         updateClock();
