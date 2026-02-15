@@ -6,7 +6,8 @@ const CACHE_MS = 5 * 60 * 1000; // 5 min
 
 exports.handler = async function(event, context) {
     const queryParams = event.queryStringParameters || {};
-    const cacheKey = (queryParams.arr_iata || 'CDG').toUpperCase();
+    const arrIata = (queryParams.arr_iata || 'CDG').toUpperCase();
+    const cacheKey = arrIata;
 
     // Check cache
     const cached = flightCaches[cacheKey];
@@ -22,10 +23,6 @@ exports.handler = async function(event, context) {
     if (!apiKey) {
         return { statusCode: 500, body: JSON.stringify({ error: 'No API key configured' }) };
     }
-
-    // Support any airport via query param (default CDG)
-    const queryParams = event.queryStringParameters || {};
-    const arrIata = (queryParams.arr_iata || 'CDG').toUpperCase();
 
     try {
         // Fetch scheduled + active arrivals
@@ -91,10 +88,10 @@ exports.handler = async function(event, context) {
 
         const result = {
             flights,
-            meta: { totalFlights: flights.length, airport: 'CDG', timestamp: new Date().toISOString() }
+            meta: { totalFlights: flights.length, airport: arrIata, timestamp: new Date().toISOString() }
         };
 
-        flightCaches[arrIata] = { data: result, time: Date.now() };
+        flightCaches[cacheKey] = { data: result, time: Date.now() };
 
         return {
             statusCode: 200,

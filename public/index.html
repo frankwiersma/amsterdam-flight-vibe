@@ -1109,10 +1109,17 @@
                 spin.classList.remove('on');
                 meta.textContent = 'just now';
             })
-            .catch(() => {
-                render(cached || mockFlights());
-                spin.classList.remove('on');
-                meta.textContent = cached ? 'cached' : 'demo';
+            .catch(err => {
+                console.error('Flight fetch error:', err);
+                if (cached) {
+                    render(cached);
+                    spin.classList.remove('on');
+                    meta.textContent = 'cached';
+                } else {
+                    render(mockFlights());
+                    spin.classList.remove('on');
+                    meta.textContent = '⚠ demo mode (API error)';
+                }
             });
     }
 
